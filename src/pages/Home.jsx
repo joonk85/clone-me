@@ -17,10 +17,10 @@ import {
   rowToMarketCard,
 } from "../lib/supabaseQueries";
 
-const GUEST_STATS = [
-  { label: "전문가 클론", value: "340+", sub: "등록" },
-  { label: "누적 대화", value: "120만+", sub: "턴" },
-  { label: "만족도", value: "4.8", sub: "/ 5.0" },
+const HERO_STATS = [
+  { value: "100+", label: "분야별 전문가", sub: "" },
+  { value: "24시간", label: "언제든 질문", sub: "" },
+  { value: "월 200회", label: "기본 대화 제공", sub: "" },
 ];
 
 function relTime(iso) {
@@ -333,83 +333,132 @@ export default function Home() {
     return (
       <div style={{ minHeight: "100%", ...pagePad }}>
         <div style={maxWGuest}>
-          {/* 히어로 */}
-          <section style={{ position: "relative", textAlign: "center", paddingTop: isMobile ? 8 : 12, paddingBottom: 4 }}>
+          {/* 히어로 — BETA 뱃지 · 그라디언트 타이틀 · cyan 글로우 */}
+          <section
+            style={{
+              position: "relative",
+              textAlign: "center",
+              paddingTop: isMobile ? 12 : 20,
+              paddingBottom: isMobile ? 8 : 12,
+              marginBottom: isMobile ? 4 : 8,
+              overflow: "hidden",
+              borderRadius: "var(--r-xl)",
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: "-8% -12% auto",
+                height: "92%",
+                background:
+                  "radial-gradient(ellipse 72% 48% at 50% -8%, var(--cyd) 0%, transparent 58%), radial-gradient(ellipse 42% 32% at 92% 18%, var(--cyg) 0%, transparent 70%), radial-gradient(ellipse 38% 28% at 8% 22%, var(--cyg) 0%, transparent 68%)",
+                pointerEvents: "none",
+              }}
+            />
             <div
               aria-hidden
               style={{
                 position: "absolute",
                 left: "50%",
-                top: "-30%",
+                bottom: "-20%",
                 transform: "translateX(-50%)",
-                width: "min(140%, 900px)",
-                height: "85%",
-                background: "radial-gradient(ellipse 55% 45% at 50% 0%, var(--cyd) 0%, transparent 72%)",
+                width: "min(100%, 520px)",
+                height: "45%",
+                background: "radial-gradient(ellipse 80% 70% at 50% 100%, var(--cyd) 0%, transparent 65%)",
+                opacity: 0.5,
                 pointerEvents: "none",
               }}
             />
-            <div style={{ position: "relative" }}>
-              <p
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
                 style={{
-                  fontFamily: "var(--mo)",
-                  fontSize: "var(--fs-xs)",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: "var(--cy)",
-                  fontWeight: 600,
-                  marginBottom: 12,
+                  display: "inline-flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  marginBottom: isMobile ? 18 : 22,
+                  padding: "8px 16px",
+                  borderRadius: 999,
+                  border: "1px solid var(--br2)",
+                  background: "linear-gradient(135deg, var(--cyd) 0%, var(--sf2) 100%)",
+                  boxShadow: "0 0 32px var(--cyg)",
                 }}
               >
-                clone.me
-              </p>
-              <h1
-                style={{
-                  fontSize: isMobile ? "clamp(1.5rem, 6.5vw, 2rem)" : "clamp(2rem, 4.2vw, 2.75rem)",
-                  fontWeight: 800,
-                  letterSpacing: "-0.035em",
-                  color: "var(--tx)",
-                  fontFamily: "var(--fn)",
-                  lineHeight: 1.1,
-                }}
-              >
-                나만의 전문가 클론과
-                <br />
-                대화하세요
+                {["지식 클론 플랫폼", "한국 최초", "BETA"].map((t, i) => (
+                  <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    {i > 0 && (
+                      <span style={{ color: "var(--tx3)", fontFamily: "var(--mo)", fontSize: "var(--fs-xs)" }} aria-hidden>
+                        ·
+                      </span>
+                    )}
+                    <span
+                      style={{
+                        fontFamily: "var(--mo)",
+                        fontSize: "var(--fs-xs)",
+                        letterSpacing: i === 2 ? "0.14em" : "0.06em",
+                        textTransform: i === 2 ? "uppercase" : "none",
+                        color: i === 2 ? "var(--go)" : "var(--cy)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {t}
+                    </span>
+                  </span>
+                ))}
+              </div>
+              <h1 className="home-hero-gradient-title" style={{ maxWidth: 720, margin: "0 auto", padding: "0 4px" }}>
+                내 지식의 클론을 만드세요
               </h1>
               <p
                 style={{
-                  margin: "16px auto 0",
-                  maxWidth: 440,
-                  fontSize: "var(--fs-body)",
+                  margin: "18px auto 0",
+                  maxWidth: 460,
+                  fontSize: isMobile ? "var(--fs-body)" : "var(--fs-body)",
                   color: "var(--tx2)",
-                  lineHeight: 1.75,
+                  lineHeight: 1.72,
+                  fontFamily: "var(--fn)",
+                  fontWeight: 500,
+                }}
+              >
+                분야 최고 전문가에게 언제든 1:1로 물어보세요.
+              </p>
+              <p
+                style={{
+                  margin: "10px auto 0",
+                  maxWidth: 460,
+                  fontSize: "var(--fs-caption)",
+                  color: "var(--tx3)",
+                  lineHeight: 1.65,
                   fontFamily: "var(--fn)",
                 }}
               >
-                법률·세무·코칭 등 분야별 마스터의 지식을 클론으로. 토큰으로 대화하고, 마스터는 수익을 만듭니다.
+                전문가 클론이 24시간 답해드립니다.
               </p>
               <div
                 style={{
-                  marginTop: 26,
+                  marginTop: isMobile ? 26 : 30,
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: 10,
+                  gap: 12,
                   justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <Bt v="pr" on={() => navigate("/signup")}>
-                  무료로 시작하기
+                <Bt v="pr" on={() => navigate("/market")} style={{ minHeight: "var(--touch-min)", paddingLeft: 20, paddingRight: 20 }}>
+                  전문가 클론 탐색 →
                 </Bt>
-                <Bt v="gh" on={() => navigate("/market")}>
-                  마켓 둘러보기
+                <Bt v="gh" on={() => navigate("/master-register")} style={{ minHeight: "var(--touch-min)", paddingLeft: 18, paddingRight: 18 }}>
+                  강사로 등록하기
                 </Bt>
               </div>
             </div>
           </section>
 
-          {/* 통계 바 (단일 카드 + 구분선) */}
-          <section style={{ marginTop: isMobile ? 32 : 44 }}>
-            <Cd style={{ padding: 0, overflow: "hidden", borderColor: "var(--br2)", background: "var(--sf2)" }}>
+          {/* 통계 바 */}
+          <section style={{ marginTop: isMobile ? 28 : 40 }}>
+            <Cd style={{ padding: 0, overflow: "hidden", borderColor: "var(--br2)", background: "var(--sf2)", boxShadow: "0 0 0 1px var(--cyg)" }}>
               <div
                 style={{
                   display: "flex",
@@ -417,12 +466,12 @@ export default function Home() {
                   alignItems: "stretch",
                 }}
               >
-                {GUEST_STATS.map((s, i) => (
+                {HERO_STATS.map((s, i) => (
                   <div
                     key={s.label}
                     style={{
                       flex: 1,
-                      padding: isMobile ? "16px 14px" : "22px 16px",
+                      padding: isMobile ? "18px 16px" : "24px 18px",
                       textAlign: "center",
                       borderLeft: !isMobile && i > 0 ? "1px solid var(--br)" : undefined,
                       borderTop: isMobile && i > 0 ? "1px solid var(--br)" : undefined,
@@ -430,7 +479,7 @@ export default function Home() {
                   >
                     <p
                       style={{
-                        fontSize: isMobile ? "var(--fs-h2)" : "clamp(1.25rem, 2.2vw, 1.5rem)",
+                        fontSize: isMobile ? "var(--fs-h2)" : "clamp(1.2rem, 2vw, 1.45rem)",
                         fontWeight: 800,
                         color: "var(--cy)",
                         fontFamily: "var(--mo)",
@@ -439,10 +488,10 @@ export default function Home() {
                     >
                       {s.value}
                     </p>
-                    <p style={{ marginTop: 6, fontSize: "var(--fs-caption)", color: "var(--tx)", fontFamily: "var(--fn)", fontWeight: 600 }}>{s.label}</p>
-                    {s.sub && (
+                    <p style={{ marginTop: 8, fontSize: "var(--fs-caption)", color: "var(--tx)", fontFamily: "var(--fn)", fontWeight: 600, lineHeight: 1.45 }}>{s.label}</p>
+                    {s.sub ? (
                       <p style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", fontFamily: "var(--mo)", marginTop: 4 }}>{s.sub}</p>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>

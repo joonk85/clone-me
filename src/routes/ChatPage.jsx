@@ -99,7 +99,7 @@ export default function ChatPage() {
   if (!clone) return <Navigate to="/market" replace />;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, width: "100%" }}>
       <Chat
         clone={clone}
         subscribed={subscribed}

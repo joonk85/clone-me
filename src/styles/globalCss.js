@@ -122,6 +122,23 @@ html,body{
 }
 .nav-scroll::-webkit-scrollbar{display:none}
 
+/* 홈 비로그인 히어로 — 시안·퍼플 그라디언트 타이틀 (토큰만) */
+.home-hero-gradient-title{
+  font-family:var(--fn);
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:1.06;
+  font-size:clamp(1.7rem,6.2vw,2.35rem);
+  background:linear-gradient(102deg,var(--cy) 0%,var(--pu) 38%,var(--cy) 72%,var(--gn) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+@media (min-width:768px){
+  .home-hero-gradient-title{font-size:clamp(2.4rem,4.2vw,3.25rem);}
+}
+
 @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes wv{0%,100%{transform:scaleY(0.3)}50%{transform:scaleY(1)}}

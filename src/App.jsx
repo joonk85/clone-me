@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppStateProvider } from "./contexts/AppStateContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import Layout from "./routes/Layout";
 import MasterProfilePage from "./routes/MasterProfilePage";
 import ChatPage from "./routes/ChatPage";
@@ -50,9 +51,11 @@ export default function App() {
               <Route element={<Layout />}>
                 {/* 공개 */}
                 <Route index element={<Home />} />
-                <Route path="login" element={<Login />} />
-                <Route path="signup" element={<Signup />} />
-                <Route path="signup/verified" element={<Verified />} />
+                <Route element={<PublicOnlyRoute />}>
+                  <Route path="login" element={<Login />} />
+                  <Route path="signup" element={<Signup />} />
+                  <Route path="signup/verified" element={<Verified />} />
+                </Route>
                 <Route path="market" element={<Market />} />
                 <Route path="master/:id" element={<MasterProfilePage />} />
                 <Route path="terms" element={<Terms />} />

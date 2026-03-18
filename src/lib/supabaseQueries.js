@@ -209,6 +209,65 @@ export async function fetchRecentConversations(supabase, userId, limit = 5) {
   return { list: data || [], error };
 }
 
+/** 채팅 레일: 대화 목록 + 마지막 메시지 미리보기 */
+export async function fetchConversationsForChatRail(supabase, userId, limit = 40) {
+  const { data: convs, error } = await supabase
+    .from("conversations")
+    .select("id, updated_at, clone_id, clones(name, color, av)")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error) return { list: [], error };
+  if (!convs?.length) return { list: [], error: null };
+
+  const ids = convs.map((c) => c.id);
+  const { data: msgs } = await supabase
+    .from("messages")
+    .select("conversation_id, content, created_at")
+    .in("conversation_id", ids)
+    .order("created_at", { ascending: false })
+    .limit(600);
+
+  const previewByConv = {};
+  for (const m of msgs || []) {
+    if (previewByConv[m.conversation_id] == null) {
+      const t = (m.content || "").replace(/\s+/g, " ").trim();
+      previewByConv[m.conversation_id] = t.slice(0, 72) || "새 대화";
+    }
+  }
+
+  const list = convs.map((c) => ({
+    id: c.id,
+    updated_at: c.updated_at,
+    clone_id: c.clone_id,
+    cloneName: c.clones?.name || "클론",
+    color: c.clones?.color || "#63d9ff",
+    av: c.clones?.av || "?",
+    preview: previewByConv[c.id] || "새 대화",
+  }));
+  return { list, error: null };
+}
+
+export async function fetchMessagesForConversation(supabase, conversationId) {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, role, content, created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+  return { messages: data || [], error };
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** 구독 클론 메타 (레일 하단) — UUID만 DB 조회 */
+export async function fetchClonesByIdsForRail(supabase, cloneIds) {
+  const uuids = (cloneIds || []).filter((id) => typeof id === "string" && UUID_RE.test(id));
+  if (!uuids.length) return { list: [], error: null };
+  const { data, error } = await supabase.from("clones").select("id, name, color, av").in("id", uuids).eq("is_active", true);
+  if (error) return { list: [], error };
+  return { list: data || [], error: null };
+}
+
 /** 홈 — 멤버: 토큰 요약 */
 export async function fetchTokenSummary(supabase, userId) {
   const [balRes, bonusRes] = await Promise.all([

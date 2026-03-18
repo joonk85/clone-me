@@ -79,3 +79,7 @@ JS에서는 `useWindowSize().isMobile` (`width < 768`).
 ## 애니메이션
 
 `fu`, `sp`, `wv`, `d3`, `pulse` — `globalCss.js` 내 `@keyframes` 참고.
+
+## 홈 히어로
+
+- 클래스 **`.home-hero-gradient-title`** — `linear-gradient`에 `var(--cy)`·`var(--pu)`·`var(--gn)`만 사용 (`background-clip: text`).

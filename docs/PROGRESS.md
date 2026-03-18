@@ -7,7 +7,7 @@
 
 ## Phase 1 완료 ✅
 
-- 폴더 구조 / Router / Protected Routes
+- 폴더 구조 / Router / `ProtectedRoute` + **`PublicOnlyRoute`** (`/login`·`/signup`·`/signup/verified` — 로그인 시 `/` 리다이렉트)
 - Supabase 연결 + DB 스키마(`schema_full_v4_2`) + RLS + `grant_public_api` 등
 - 회원가입 / 로그인 / 이메일 인증 (`/signup/verified`)
 - 온보딩 플로우 (`users.onboarding_completed`)
@@ -18,7 +18,7 @@
 
 ## Phase 2 완료 ✅
 
-- **홈 `/`** — 비로그인(히어로·통계 바·Featured 최대 6·CTA) / 멤버(토큰 카드·최근 대화·추천) / 마스터(클론·미답변 피드백) · 다크 토큰·로딩 스피너 (UI 정리 1차)
+- **홈 `/`** — 비로그인: BETA 뱃지·시안 그라디언트 히어로 타이틀·cyan 글로우·통계(100+/24시간/월200회)·마켓/강사 CTA · Featured·하단 회원 CTA / 멤버·마스터 동일
 - **네비** — 데스크톱: 상단 홈·마켓·마이 / 모바일: 하단 탭바(동일 3탭) + 헤더 로고·로그인|내 정보 (`navShell.js`로 채팅·대시보드 등에서 탭바 숨김)
 - **마켓 `/market`** — 헤더 카드·Featured 가로 스크롤(모바일)/그리드·리스트 카드(액센트 바·이미지 아바타)·필터 빈 목록·Supabase 미설정/빈 마켓/에러 UI·`LoadingSpinner` (CSS 변수만)
 - **마이 `/my`** — 헤더(그라데이션·링 아바타·닉네임·멤버/마스터 뱃지·`MasterBadges`·토큰 카드 링크)·설정 텍스트 버튼·멤버/마스터 탭 라벨·`MemberProfile`·`MasterTab` 카드 폼·로딩/에러 토큰색

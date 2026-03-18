@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import Av from "../common/Av";
 import MasterBadges from "../common/MasterBadges";
@@ -6,7 +7,15 @@ import Bt from "../common/Bt";
 import Pb from "../common/Pb";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
+import {
+  fetchClonesByIdsForRail,
+  fetchConversationsForChatRail,
+  fetchMessagesForConversation,
+} from "../lib/supabaseQueries";
 import { FREE_BASE, FREE_BONUS, MONTHLY_CAP } from "../lib/tokens";
+import { CLONES_MARKET } from "../lib/mockData";
+
+import "./chat-claude.css";
 
 function pickMarketingLink(userMsg, answer, links, freq) {
   if (!links?.length) return null;
@@ -45,6 +54,22 @@ function formatSourceLine(s) {
   return { icon: "📄", text: `${name}${page}${sec}` };
 }
 
+function formatRailDate(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const sameDay =
+      d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    if (sameDay) {
+      return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  } catch {
+    return "";
+  }
+}
+
 export default function Chat({
   clone,
   subscribed,
@@ -55,6 +80,9 @@ export default function Chat({
   isDbClone = false,
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const convFromUrl = searchParams.get("conv") || "";
   const themeColor = clone.color || "#63d9ff";
 
   const isSub = subscribed.includes(clone.id);
@@ -83,6 +111,11 @@ export default function Chat({
   const [surveyAns, setSurveyAns] = useState(qs.map(() => ""));
   const [conversationId, setConversationId] = useState(null);
   const [marketingLinks, setMarketingLinks] = useState([]);
+  const [railOpen, setRailOpen] = useState(false);
+  const [convRailList, setConvRailList] = useState([]);
+  const [railSubs, setRailSubs] = useState([]);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [convLoading, setConvLoading] = useState(false);
   const bot = useRef(null);
   const iRef = useRef(null);
 
@@ -116,6 +149,100 @@ export default function Chat({
       cancelled = true;
     };
   }, [clone.id, isDbClone, clone.products, clone.links]);
+
+  const refreshRail = useCallback(async () => {
+    if (!isDbClone || !user) {
+      setConvRailList([]);
+      setRailSubs([]);
+      return;
+    }
+    const sb = getSupabaseBrowserClient();
+    if (!sb) return;
+    const { list: convs } = await fetchConversationsForChatRail(sb, user.id, 35);
+    setConvRailList(convs || []);
+    const { list: subRows } = await fetchClonesByIdsForRail(sb, subscribed);
+    const byId = Object.fromEntries((subRows || []).map((r) => [r.id, r]));
+    const merged = (subscribed || []).map((id) => {
+      if (byId[id]) return { id, ...byId[id] };
+      const m = CLONES_MARKET.find((c) => c.id === id);
+      if (m) return { id, name: m.name, color: m.color, av: m.av };
+      return { id, name: "클론", color: "#63d9ff", av: "?" };
+    });
+    setRailSubs(merged);
+  }, [isDbClone, user, subscribed]);
+
+  useEffect(() => {
+    refreshRail();
+  }, [refreshRail]);
+
+  useEffect(() => {
+    if (!isDbClone || !user || !convFromUrl) {
+      setConvLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setConvLoading(true);
+      const sb = getSupabaseBrowserClient();
+      if (!sb) {
+        setConvLoading(false);
+        return;
+      }
+      const { data: convRow } = await sb
+        .from("conversations")
+        .select("id, clone_id, user_id")
+        .eq("id", convFromUrl)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!convRow || convRow.user_id !== user.id) {
+        setSearchParams({}, { replace: true });
+        setConvLoading(false);
+        return;
+      }
+      if (convRow.clone_id !== clone.id) {
+        navigate(`/chat/${convRow.clone_id}?conv=${convFromUrl}`, { replace: true });
+        return;
+      }
+      const { messages } = await fetchMessagesForConversation(sb, convFromUrl);
+      if (cancelled) return;
+      setConversationId(convRow.id);
+      const mapped = (messages || []).map((m) => ({
+        r: m.role === "user" ? "u" : "a",
+        t: m.content || "",
+        sources: [],
+      }));
+      if (mapped.length === 0) {
+        setMsgs([
+          {
+            r: "a",
+            t: clone.welcomeMsg || `안녕하세요! ${clone.name}의 AI 클론입니다.`,
+            sources: [],
+          },
+        ]);
+      } else {
+        setMsgs(mapped);
+        setSurveyStep("done");
+      }
+      setConvLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [convFromUrl, clone.id, clone.welcomeMsg, clone.name, isDbClone, user, navigate, setSearchParams]);
+
+  const startNewChat = useCallback(() => {
+    setSearchParams({}, { replace: true });
+    setConversationId(null);
+    setRailOpen(false);
+    setMsgs([
+      {
+        r: "a",
+        t: clone.welcomeMsg || `안녕하세요! ${clone.name}의 AI 클론입니다.`,
+        sources: [],
+      },
+    ]);
+    if (!svd) setSurveyStep("intro");
+  }, [clone.welcomeMsg, clone.name, setSearchParams, svd]);
 
   useEffect(() => {
     bot.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,6 +337,7 @@ export default function Chat({
       }
 
       if (d.conversationId) setConversationId(d.conversationId);
+      refreshRail();
       const answer = d.answer || "답변을 가져오지 못했습니다.";
       const sources = Array.isArray(d.sources) ? d.sources : [];
       const marketing = pickMarketingLink(m, answer, marketingLinks, clone.mkt_freq || "medium");
@@ -235,6 +363,7 @@ export default function Chat({
     user,
     conversationId,
     marketingLinks,
+    refreshRail,
   ]);
 
   const IS = {
@@ -373,434 +502,480 @@ export default function Chat({
     );
   };
 
+  const showRail = isDbClone && !!user;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: 660, background: "var(--bg)" }}>
+    <div
+      style={{
+        position: "relative",
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+        width: "100%",
+      }}
+    >
       <div
+        className="chat-claude-root"
         style={{
-          padding: "10px 16px",
-          borderBottom: "1px solid var(--br)",
-          background: "var(--sf)",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexShrink: 0,
+          ["--chat-accent"]: themeColor,
         }}
       >
-        <Av char={clone.av || "?"} color={themeColor} size={30} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span>
-              {clone.name}{" "}
-              <span style={{ fontSize: 9, color: "var(--tx3)", fontFamily: "var(--mo)" }}>AI CLONE</span>
-            </span>
-            <MasterBadges verified={clone.isVerified ?? clone.featured} affiliate={clone.isAffiliate} />
-          </div>
-          <div style={{ fontSize: 11, color: "var(--tx2)" }}>{clone.title || clone.subtitle || ""}</div>
-        </div>
-        {isSub && (
-          <div style={{ textAlign: "right", minWidth: 110 }}>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--tx2)",
-                marginBottom: 2,
-                display: "flex",
-                justifyContent: "space-between",
-                fontFamily: "var(--mo)",
-              }}
-            >
-              <span>이번달</span>
-              <span>
-                {monthly}/{MONTHLY_CAP}
-              </span>
-            </div>
-            <Pb val={monthly} max={MONTHLY_CAP} c={themeColor} />
-          </div>
-        )}
-        {!isSub && (
-          <div
-            style={{
-              padding: "2px 8px",
-              borderRadius: 5,
-              background: "var(--am-surface)",
-              fontSize: 10,
-              color: "var(--am)",
-              fontFamily: "var(--mo)",
-            }}
-          >
-            체험 {rem}회
-          </div>
-        )}
-      </div>
-
-      {!isSub && rem === 2 && (
-        <div
-          style={{
-            padding: "7px 16px",
-            background: "var(--cyg)",
-            borderBottom: "1px solid var(--br2)",
-            fontSize: 11,
-            color: "var(--cy)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          <span>💡 무료 체험 {rem}회 남았습니다</span>
-          <Bt v="pr" sz="sm">
-            ₩{(clone.price || 19000).toLocaleString()}/월 구독
-          </Bt>
-        </div>
-      )}
-      {!isSub && rem === 1 && (
-        <div
-          style={{
-            padding: "7px 16px",
-            background: "var(--am-muted)",
-            borderBottom: "1px solid var(--am-line)",
-            fontSize: 11,
-            color: "var(--am)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          <span>⚡ 마지막 무료 체험 1회입니다</span>
-          <Bt v="pr" sz="sm" style={{ background: "var(--am)" }}>
-            지금 구독하기
-          </Bt>
-        </div>
-      )}
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-          {msgs.map((msg, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 8,
-                flexDirection: msg.r === "u" ? "row-reverse" : "row",
-                animation: "fu 0.2s ease",
-              }}
-            >
-              {msg.r === "a" && <Av char={clone.av || "?"} color={themeColor} size={24} />}
-              <div style={{ maxWidth: "74%" }}>
-                <div
-                  style={{
-                    padding: "9px 13px",
-                    borderRadius: 12,
-                    background: msg.r === "u" ? "var(--cyd)" : "var(--sf)",
-                    color: "var(--tx)",
-                    border: msg.r === "u" ? "1px solid var(--br2)" : "1px solid var(--br)",
-                    fontSize: 13,
-                    lineHeight: 1.7,
-                    borderTopRightRadius: msg.r === "u" ? 3 : 12,
-                    borderTopLeftRadius: msg.r === "a" ? 3 : 12,
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {msg.t}
-                </div>
-                {msg.r === "a" && msg.fromFixed && (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--go)",
-                      fontFamily: "var(--mo)",
-                      marginTop: 6,
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    ✓ 고정 답변
-                  </div>
-                )}
-                {msg.r === "a" && clone.quality?.citation !== false && msg.sources?.length > 0 && (
-                  <div
-                    style={{
-                      marginTop: 8,
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      background: "var(--cyg)",
-                      border: "1px solid var(--br2)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 9,
-                        color: "var(--cy)",
-                        fontFamily: "var(--mo)",
-                        letterSpacing: "0.08em",
-                        marginBottom: 6,
-                      }}
-                    >
-                      출처
-                    </div>
-                    {msg.sources.map((s, j) => {
-                      const { icon, text } = formatSourceLine(s);
-                      return (
-                        <div
-                          key={s.chunk_id || j}
-                          style={{
-                            fontSize: 10,
-                            color: "var(--tx2)",
-                            fontFamily: "var(--mo)",
-                            lineHeight: 1.5,
-                            marginTop: j ? 4 : 0,
-                          }}
-                        >
-                          <span style={{ marginRight: 4 }}>{icon}</span>
-                          {text}
-                          {s.similarity != null && (
-                            <span style={{ color: "var(--tx3)", marginLeft: 6 }}>
-                              ({Math.round(Number(s.similarity) * 100)}%)
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {msg.r === "a" && msg.marketing?.url && (
-                  <a
-                    href={msg.marketing.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "block",
-                      marginTop: 8,
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      background: "var(--sf2)",
-                      border: "1px solid var(--br2)",
-                      textDecoration: "none",
-                      color: "var(--cy)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      fontFamily: "var(--fn)",
-                      transition: "background 0.15s",
-                    }}
-                  >
-                    🔗 {msg.marketing.product || "관련 링크"}
-                    {msg.marketing.price ? (
-                      <span style={{ fontWeight: 500, color: "var(--tx2)", marginLeft: 8 }}>{msg.marketing.price}</span>
-                    ) : null}
-                    <span style={{ float: "right", fontSize: 11 }}>열기 →</span>
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
-          {load && (
-            <div style={{ display: "flex", gap: 8 }}>
-              <Av char={clone.av || "?"} color={themeColor} size={24} />
-              <div
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  borderTopLeftRadius: 3,
-                  background: "var(--sf)",
-                  border: "1px solid var(--br)",
-                  display: "flex",
-                  gap: 4,
-                  alignItems: "center",
-                }}
-              >
-                {[0, 1, 2].map((n) => (
-                  <div
-                    key={n}
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: "50%",
-                      background: themeColor,
-                      animation: `d3 1.2s ${n * 0.2}s infinite`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {msgs.length >= 1 && <SurveyCard />}
-
-          {!isSub &&
-            rem === 0 &&
-            msgs.length > 1 &&
-            (() => {
-              const lastBotMsg = msgs.filter((x) => x.r === "a").slice(-1)[0]?.t || "";
-              return (
-                <div style={{ animation: "fu 0.4s ease" }}>
-                  <div style={{ position: "relative", marginBottom: 10 }}>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Av char={clone.av || "?"} color={themeColor} size={24} />
-                      <div
-                        style={{
-                          maxWidth: "74%",
-                          padding: "9px 13px",
-                          borderRadius: 12,
-                          borderTopLeftRadius: 3,
-                          background: "var(--sf)",
-                          border: "1px solid var(--br)",
-                          fontSize: 13,
-                          lineHeight: 1.7,
-                          filter: "blur(4px)",
-                          userSelect: "none",
-                          color: "var(--tx)",
-                          opacity: 0.6,
-                        }}
-                      >
-                        {lastBotMsg.slice(0, 80)}...
-                      </div>
-                    </div>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <div
-                        style={{
-                          padding: "3px 10px",
-                          borderRadius: 7,
-                          background: "var(--sf3)",
-                          border: "1px solid var(--br)",
-                          fontSize: 11,
-                          color: "var(--tx2)",
-                        }}
-                      >
-                        🔒 구독 후 전체 답변 확인
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      border: `1px solid ${themeColor}44`,
-                      borderRadius: 13,
-                      padding: "16px 16px",
-                      background: `${themeColor}08`,
-                      animation: "fu 0.3s ease",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                      <Av char={clone.av || "?"} color={themeColor} size={32} />
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 700 }}>이 대화를 계속하고 싶으신가요?</div>
-                        <div style={{ fontSize: 11, color: "var(--tx2)", marginTop: 1 }}>{clone.name} 클론과 무제한 대화하기</div>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        padding: "9px 11px",
-                        background: "var(--sf2)",
-                        borderRadius: 8,
-                        marginBottom: 10,
-                        fontSize: 11,
-                        color: "var(--tx2)",
-                        lineHeight: 1.6,
-                        borderLeft: `2px solid ${themeColor}`,
-                      }}
-                    >
-                      💡 구독하면 — 이 주제를 더 깊이 파고들 수 있습니다.
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Bt v="pr" on={() => {}} style={{ flex: 1, justifyContent: "center", background: themeColor }}>
-                        ₩{(clone.price || 19000).toLocaleString()}/월 구독하기
-                      </Bt>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-          <div ref={bot} />
-        </div>
-      </div>
-
-      <div style={{ borderTop: "1px solid var(--br)", background: "var(--sf)", padding: "10px 14px", flexShrink: 0 }}>
-        <div style={{ display: "flex", gap: 8, maxWidth: 600, margin: "0 auto" }}>
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              background: "var(--sf2)",
-              border: "1px solid var(--br)",
-              borderRadius: 11,
-              padding: "0 12px",
-            }}
-          >
-            <input
-              ref={iRef}
-              value={inp}
-              onChange={(e) => setInp(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder={canSend ? `${clone.name}에게 질문하세요...` : "한도를 초과했습니다"}
-              disabled={!canSend}
-              style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                color: "var(--tx)",
-                fontSize: 13,
-                padding: "11px 0",
-                fontFamily: "var(--fn)",
-              }}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={send}
-            disabled={!inp.trim() || load || !canSend}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 9,
-              background: themeColor,
-              border: "none",
-              cursor: inp.trim() && !load && canSend ? "pointer" : "not-allowed",
-              opacity: inp.trim() && !load && canSend ? 1 : 0.35,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ color: "var(--on-cy)" }}>
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
-        </div>
-        <div
-          style={{
-            maxWidth: 600,
-            margin: "4px auto 0",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>🔐 학습 자료 기반 답변</span>
-          {!fbDone && (
+        {showRail && (
+          <>
             <button
               type="button"
-              onClick={() => setFbPopup(true)}
+              className="chat-claude-rail-overlay"
+              data-open={railOpen ? "true" : "false"}
+              onClick={() => setRailOpen(false)}
+              aria-label="사이드 패널 닫기"
+            />
+            <aside className="chat-claude-rail" data-open={railOpen ? "true" : "false"}>
+              <div className="chat-claude-rail-new">
+                <button type="button" className="chat-claude-rail-new-btn" onClick={startNewChat}>
+                  <span style={{ fontSize: 18, fontWeight: 300, lineHeight: 1 }} aria-hidden>
+                    +
+                  </span>
+                  새 대화
+                </button>
+              </div>
+              <div className="chat-claude-rail-scroll">
+                <div className="chat-claude-rail-section-label">대화 기록</div>
+                {convRailList.length === 0 && (
+                  <div style={{ padding: "12px 10px", fontSize: 11, color: "var(--tx3)", fontFamily: "var(--fn)" }}>
+                    저장된 대화가 없습니다. 대화를 시작하면 여기에 표시됩니다.
+                  </div>
+                )}
+                {convRailList.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="chat-claude-rail-item"
+                    data-active={c.id === convFromUrl && c.clone_id === clone.id ? "true" : "false"}
+                    onClick={() => {
+                      navigate(`/chat/${c.clone_id}?conv=${c.id}`);
+                      setRailOpen(false);
+                    }}
+                  >
+                    <div className="chat-claude-rail-item-title">
+                      <Av char={c.av || "?"} color={c.color} size={22} />
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.cloneName}</span>
+                    </div>
+                    <div className="chat-claude-rail-item-preview">{c.preview}</div>
+                    <div className="chat-claude-rail-item-date">{formatRailDate(c.updated_at)}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="chat-claude-rail-subs">
+                <div className="chat-claude-rail-section-label">구독 중인 클론</div>
+                {railSubs.length === 0 && (
+                  <div style={{ padding: "8px 10px", fontSize: 11, color: "var(--tx3)" }}>구독 중인 클론이 없습니다</div>
+                )}
+                {railSubs.map((s) => (
+                  <Link
+                    key={s.id}
+                    to={`/chat/${s.id}`}
+                    className="chat-claude-rail-sub-item"
+                    onClick={() => setRailOpen(false)}
+                    style={s.id === clone.id ? { background: "var(--sf3)", border: "1px solid var(--br2)" } : undefined}
+                  >
+                    <Av char={s.av || "?"} color={s.color || "#63d9ff"} size={26} />
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </aside>
+          </>
+        )}
+
+        <div className="chat-claude-main">
+          <header className="chat-claude-header" style={{ position: "relative", paddingTop: 4 }}>
+            <div className="chat-claude-header-accent" />
+            <div className="chat-claude-header-inner">
+              {showRail && (
+                <button
+                  type="button"
+                  className="chat-claude-hamburger"
+                  onClick={() => setRailOpen((o) => !o)}
+                  aria-label="대화 목록"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                  </svg>
+                </button>
+              )}
+              <Av char={clone.av || "?"} color={themeColor} size={36} />
+              <div className="chat-claude-header-meta">
+                <div className="chat-claude-header-row">
+                  <span className="chat-claude-header-name">{clone.name}</span>
+                  <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>AI CLONE</span>
+                  <MasterBadges verified={clone.isVerified ?? clone.featured} affiliate={clone.isAffiliate} />
+                </div>
+                <div className="chat-claude-header-sub">{clone.title || clone.subtitle || ""}</div>
+              </div>
+              {isSub && (
+                <div className="chat-claude-quota">
+                  <div>
+                    이번달 {monthly}/{MONTHLY_CAP}
+                  </div>
+                  <Pb val={monthly} max={MONTHLY_CAP} c={themeColor} />
+                </div>
+              )}
+              {!isSub && (
+                <div
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    background: "var(--am-surface)",
+                    fontSize: 10,
+                    color: "var(--am)",
+                    fontFamily: "var(--mo)",
+                  }}
+                >
+                  체험 {rem}회
+                </div>
+              )}
+              <button type="button" className="chat-claude-info-btn" onClick={() => setInfoOpen(true)} aria-label="클론 정보">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          {!isSub && rem === 2 && (
+            <div
               style={{
-                fontSize: 10,
-                color: "var(--tx3)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--mo)",
-                textDecoration: "underline",
+                padding: "7px 16px",
+                background: "var(--cyg)",
+                borderBottom: "1px solid var(--br2)",
+                fontSize: 11,
+                color: "var(--cy)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
               }}
             >
-              피드백 남기기
-            </button>
+              <span>💡 무료 체험 {rem}회 남았습니다</span>
+              <Bt v="pr" sz="sm">
+                {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`}
+              </Bt>
+            </div>
           )}
-          {fbDone && (
-            <span style={{ fontSize: 10, color: "var(--gn)", fontFamily: "var(--mo)" }}>✓ 피드백 감사합니다</span>
+          {!isSub && rem === 1 && (
+            <div
+              style={{
+                padding: "7px 16px",
+                background: "var(--am-muted)",
+                borderBottom: "1px solid var(--am-line)",
+                fontSize: 11,
+                color: "var(--am)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <span>⚡ 마지막 무료 체험 1회입니다</span>
+              <Bt v="pr" sz="sm" style={{ background: "var(--am)" }}>
+                지금 구독하기
+              </Bt>
+            </div>
           )}
+
+          <div className="chat-claude-scroll">
+            <div className="chat-claude-scroll-inner">
+              {convLoading && (
+                <div style={{ textAlign: "center", padding: 32, color: "var(--tx3)", fontSize: 13 }}>대화 불러오는 중…</div>
+              )}
+              {!convLoading &&
+                msgs.map((msg, i) => (
+                  <div key={i} className="chat-claude-row" data-role={msg.r === "u" ? "u" : "a"}>
+                    {msg.r === "a" && <Av char={clone.av || "?"} color={themeColor} size={28} />}
+                    <div className="chat-claude-bubble-wrap">
+                      <div className="chat-claude-bubble">{msg.t}</div>
+                      {msg.r === "a" && msg.fromFixed && (
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "var(--go)",
+                            fontFamily: "var(--mo)",
+                            marginTop: 6,
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          ✓ 고정 답변
+                        </div>
+                      )}
+                      {msg.r === "a" && clone.quality?.citation !== false && msg.sources?.length > 0 && (
+                        <div className="chat-claude-sources">
+                          <div className="chat-claude-sources-label">출처</div>
+                          {msg.sources.map((s, j) => {
+                            const { icon, text } = formatSourceLine(s);
+                            return (
+                              <div key={s.chunk_id || j} className="chat-claude-source-line" style={{ marginTop: j ? 6 : 0 }}>
+                                <span style={{ marginRight: 6 }}>{icon}</span>
+                                {text}
+                                {s.similarity != null && (
+                                  <span style={{ color: "var(--tx3)", marginLeft: 6 }}>
+                                    ({Math.round(Number(s.similarity) * 100)}%)
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {msg.r === "a" && msg.marketing?.url && (
+                        <a
+                          href={msg.marketing.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "block",
+                            marginTop: 10,
+                            padding: "10px 12px",
+                            borderRadius: 12,
+                            background: "var(--sf2)",
+                            border: "1px solid var(--br2)",
+                            textDecoration: "none",
+                            color: "var(--chat-accent, var(--cy))",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            fontFamily: "var(--fn)",
+                          }}
+                        >
+                          🔗 {msg.marketing.product || "관련 링크"}
+                          {msg.marketing.price ? (
+                            <span style={{ fontWeight: 500, color: "var(--tx2)", marginLeft: 8 }}>{msg.marketing.price}</span>
+                          ) : null}
+                          <span style={{ float: "right", fontSize: 11 }}>열기 →</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              {!convLoading && load && (
+                <div className="chat-claude-row" data-role="a">
+                  <Av char={clone.av || "?"} color={themeColor} size={28} />
+                  <div className="chat-claude-bubble-wrap">
+                    <div
+                      className="chat-claude-bubble"
+                      style={{ display: "flex", gap: 5, alignItems: "center", padding: "14px 18px" }}
+                    >
+                      {[0, 1, 2].map((n) => (
+                        <span
+                          key={n}
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "var(--chat-accent, var(--cy))",
+                            animation: `d3 1.2s ${n * 0.2}s infinite`,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!convLoading && msgs.length >= 1 && <SurveyCard />}
+
+              {!convLoading &&
+                !isSub &&
+                rem === 0 &&
+                msgs.length > 1 &&
+                (() => {
+                  const lastBotMsg = msgs.filter((x) => x.r === "a").slice(-1)[0]?.t || "";
+                  return (
+                    <div style={{ animation: "chat-claude-fu 0.4s ease" }}>
+                      <div style={{ position: "relative", marginBottom: 10 }}>
+                        <div className="chat-claude-row" data-role="a">
+                          <Av char={clone.av || "?"} color={themeColor} size={28} />
+                          <div className="chat-claude-bubble-wrap">
+                            <div
+                              className="chat-claude-bubble"
+                              style={{
+                                filter: "blur(4px)",
+                                userSelect: "none",
+                                opacity: 0.55,
+                              }}
+                            >
+                              {lastBotMsg.slice(0, 80)}...
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: "4px 12px",
+                              borderRadius: 8,
+                              background: "var(--sf3)",
+                              border: "1px solid var(--br)",
+                              fontSize: 11,
+                              color: "var(--tx2)",
+                            }}
+                          >
+                            🔒 구독 후 전체 답변 확인
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          border: "1px solid color-mix(in srgb, var(--chat-accent, var(--cy)) 35%, var(--br))",
+                          borderRadius: 14,
+                          padding: "16px",
+                          background: "color-mix(in srgb, var(--chat-accent, var(--cy)) 8%, var(--sf))",
+                        }}
+                      >
+                        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                          <Av char={clone.av || "?"} color={themeColor} size={32} />
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700 }}>이 대화를 계속하고 싶으신가요?</div>
+                            <div style={{ fontSize: 11, color: "var(--tx2)", marginTop: 2 }}>{clone.name} 클론과 토큰으로 대화하기</div>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            padding: "9px 11px",
+                            background: "var(--sf2)",
+                            borderRadius: 8,
+                            marginBottom: 10,
+                            fontSize: 11,
+                            color: "var(--tx2)",
+                            lineHeight: 1.6,
+                            borderLeft: "2px solid var(--chat-accent, var(--cy))",
+                          }}
+                        >
+                          💡 토큰을 충전하면 이 주제를 더 깊이 이어갈 수 있어요.
+                        </div>
+                        <Bt v="pr" on={() => navigate("/my/tokens")} style={{ width: "100%", justifyContent: "center", background: "var(--chat-accent, var(--cy))" }}>
+                          {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`} · 충전하기
+                        </Bt>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+              <div ref={bot} />
+            </div>
+          </div>
+
+          <div className="chat-claude-input-dock" style={{ background: "var(--sf)" }}>
+            <div className="chat-claude-input-row">
+              <div className="chat-claude-input-field">
+                <input
+                  ref={iRef}
+                  value={inp}
+                  onChange={(e) => setInp(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
+                  placeholder={canSend ? `${clone.name}에게 메시지 입력…` : "한도를 초과했습니다"}
+                  disabled={!canSend}
+                />
+              </div>
+              <button type="button" className="chat-claude-send" onClick={send} disabled={!inp.trim() || load || !canSend} aria-label="전송">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--on-cy)" }}>
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+            <div className="chat-claude-input-foot">
+              <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>🔐 학습 자료 기반 답변</span>
+              {!fbDone && (
+                <button
+                  type="button"
+                  onClick={() => setFbPopup(true)}
+                  style={{
+                    fontSize: 10,
+                    color: "var(--tx3)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "var(--mo)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  피드백 남기기
+                </button>
+              )}
+              {fbDone && (
+                <span style={{ fontSize: 10, color: "var(--gn)", fontFamily: "var(--mo)" }}>✓ 피드백 감사합니다</span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {infoOpen && (
+        <div
+          className="chat-claude-info-modal"
+          onClick={() => setInfoOpen(false)}
+          onKeyDown={(e) => e.key === "Escape" && setInfoOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="클론 정보"
+        >
+          <div className="chat-claude-info-panel" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <Av char={clone.av || "?"} color={themeColor} size={44} />
+                <div>
+                  <div style={{ fontSize: 17, fontWeight: 800 }}>{clone.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--tx2)", marginTop: 2 }}>{clone.title || clone.subtitle}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--tx3)",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  lineHeight: 1,
+                  padding: 4,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <MasterBadges verified={clone.isVerified ?? clone.featured} affiliate={clone.isAffiliate} />
+            <div style={{ marginTop: 14, fontSize: 13, color: "var(--tx2)", lineHeight: 1.65 }}>{clone.bio || clone.signature || "이 클론은 학습 자료를 바탕으로 답변합니다."}</div>
+            <div
+              style={{
+                marginTop: 16,
+                padding: "12px 14px",
+                borderRadius: 10,
+                background: "var(--sf2)",
+                border: "1px solid var(--br)",
+                fontSize: 12,
+                color: "var(--tx2)",
+              }}
+            >
+              <div style={{ fontFamily: "var(--mo)", fontSize: 10, color: "var(--tx3)", marginBottom: 4 }}>이용 요금</div>
+              {clone.priceLabel || `토큰 ${clone.token_price ?? 1} / 메시지`}
+            </div>
+            {isSub && (
+              <div style={{ marginTop: 10, fontSize: 11, color: "var(--go)", fontFamily: "var(--mo)" }}>✓ 구독 중 · 월 {monthly}/{MONTHLY_CAP} 메시지</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {fbPopup && !fbDone && (
         <div
