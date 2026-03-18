@@ -17,6 +17,8 @@ export const CLONES_MARKET = [
     av: "K",
     color: "#63d9ff",
     featured: true,
+    isVerified: true,
+    isAffiliate: true,
     tags: ["콜드아웃리치", "협상", "엔터프라이즈"],
     bio: "15년 LG·삼성 B2B 영업. 누적 계약액 300억+.",
     signature: "거절을 기회로 바꾸는 법을 알려드립니다",

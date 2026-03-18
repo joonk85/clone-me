@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppStateProvider } from "./contexts/AppStateContext";
@@ -19,9 +19,17 @@ import Buyer from "./member/Buyer";
 import MyClones from "./master/MyClones";
 import Create from "./master/Create";
 import MasterRegister from "./master/MasterRegister";
-import MyPage from "./mypage/MyPage";
-import MemberTab from "./mypage/MemberTab";
+import MyLayout from "./mypage/MyLayout";
+import MemberProfile from "./mypage/MemberProfile";
+import MemberSubscription from "./mypage/MemberSubscription";
+import MemberConversations from "./mypage/MemberConversations";
+import MemberBecomeMaster from "./mypage/MemberBecomeMaster";
 import MasterTab from "./mypage/MasterTab";
+import MasterVerify from "./mypage/master/MasterVerify";
+import MasterClonesList from "./mypage/master/MasterClonesList";
+import MasterRevenue from "./mypage/master/MasterRevenue";
+import MasterPricing from "./mypage/master/MasterPricing";
+import MasterPayout from "./mypage/master/MasterPayout";
 import Settings from "./mypage/Settings";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -55,13 +63,27 @@ export default function App() {
                 {/* 보호: 인증 필요 */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="onboarding" element={<Onboarding />} />
-                  <Route path="my" element={<MyPage />} />
-                  <Route path="my/master" element={<MasterTab />} />
-                  <Route path="my/tokens" element={<TokenPage />}>
-                    <Route index element={<TokenShopTab />} />
-                    <Route path="history" element={<TokenHistoryTab />} />
+                  <Route path="my" element={<MyLayout />}>
+                    <Route index element={<Navigate to="profile" replace />} />
+                    <Route path="profile" element={<MemberProfile />} />
+                    <Route path="subscription" element={<MemberSubscription />} />
+                    <Route path="conversations" element={<MemberConversations />} />
+                    <Route path="become-master" element={<MemberBecomeMaster />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="tokens" element={<TokenPage />}>
+                      <Route index element={<TokenShopTab />} />
+                      <Route path="history" element={<TokenHistoryTab />} />
+                    </Route>
+                    <Route path="master" element={<Outlet />}>
+                      <Route index element={<Navigate to="profile" replace />} />
+                      <Route path="profile" element={<MasterTab />} />
+                      <Route path="verify" element={<MasterVerify />} />
+                      <Route path="clones" element={<MasterClonesList />} />
+                      <Route path="revenue" element={<MasterRevenue />} />
+                      <Route path="pricing" element={<MasterPricing />} />
+                      <Route path="payout" element={<MasterPayout />} />
+                    </Route>
                   </Route>
-                  <Route path="my/settings" element={<Settings />} />
                   <Route path="chat/:cloneId" element={<ChatPage />} />
                   <Route path="master-register" element={<MasterRegister />} />
                   <Route path="dashboard" element={<MyClones />} />

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import Av from "../common/Av";
+import MasterBadges from "../common/MasterBadges";
 import Bt from "../common/Bt";
 import Pb from "../common/Pb";
 import { FREE_BASE, FREE_BONUS, MONTHLY_CAP } from "../lib/tokens";
@@ -196,8 +197,12 @@ export default function Chat({ clone, subscribed, freeUsed, setFreeUsed, surveyD
       <div style={{ padding: "10px 16px", borderBottom: "1px solid var(--br)", background: "var(--sf)", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <Av char={clone.av || "?"} color={themeColor} size={30} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 13 }}>
-            {clone.name} <span style={{ fontSize: 9, color: "var(--tx3)", fontFamily: "var(--mo)" }}>AI CLONE</span>
+          <div style={{ fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span>
+              {clone.name}{" "}
+              <span style={{ fontSize: 9, color: "var(--tx3)", fontFamily: "var(--mo)" }}>AI CLONE</span>
+            </span>
+            <MasterBadges verified={clone.isVerified ?? clone.featured} affiliate={clone.isAffiliate} />
           </div>
           <div style={{ fontSize: 11, color: "var(--tx2)" }}>{clone.title || clone.subtitle || ""}</div>
         </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import Av from "../common/Av";
+import MasterBadges from "../common/MasterBadges";
 import Bt from "../common/Bt";
 import Cd from "../common/Cd";
 import Tg from "../common/Tg";
@@ -37,9 +38,9 @@ export default function MasterProfile({ clone, onBack, onSubscribe, subscribed, 
               {clone.featured && <div style={{ position: "absolute", top: -3, right: -3, width: 16, height: 16, borderRadius: "50%", background: "var(--go)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>★</div>}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 3 }}>
                 <span style={{ fontSize: 19, fontWeight: 800 }}>{clone.name}</span>
-                {clone.featured && <Tg label="✓ 검증된 강사" c="go" />}
+                <MasterBadges verified={clone.masterVerified ?? clone.featured} affiliate={clone.masterAffiliate ?? clone.isAffiliate} size="md" />
               </div>
               <div style={{ fontSize: 13, color: "var(--tx2)", marginBottom: 7 }}>{clone.title}</div>
               <div style={{ display: "flex", gap: 12, fontSize: 11, color: "var(--tx3)", fontFamily: "var(--mo)" }}>

@@ -29,7 +29,8 @@ export async function fetchMarketClones(supabase) {
         signature,
         tags,
         links,
-        is_verified
+        is_verified,
+        is_affiliate
       )
     `
     )
@@ -61,6 +62,8 @@ export function rowToMarketCard(row) {
     av: row.av || firstChar(m.name || row.name),
     color: row.color || "#63d9ff",
     featured: !!m.is_verified,
+    isVerified: !!m.is_verified,
+    isAffiliate: !!m.is_affiliate,
     tags,
     bio: m.bio || "",
     signature: m.signature || "",
@@ -103,6 +106,7 @@ export async function fetchCloneForProfile(supabase, cloneId) {
         tags,
         links,
         is_verified,
+        is_affiliate,
         slug
       ),
       demo_qa ( question, answer, is_pinned, display_order ),
@@ -134,6 +138,10 @@ export async function fetchCloneForProfile(supabase, cloneId) {
     av: data.av || firstChar(m.name || data.name),
     color: data.color || "#63d9ff",
     featured: !!m.is_verified,
+    masterVerified: !!m.is_verified,
+    masterAffiliate: !!m.is_affiliate,
+    isVerified: !!m.is_verified,
+    isAffiliate: !!m.is_affiliate,
     tags: Array.isArray(m.tags) ? m.tags : [],
     bio: m.bio || "",
     signature: m.signature || "",
@@ -188,4 +196,160 @@ export async function insertMaster(supabase, row) {
 export async function updateMaster(supabase, masterId, patch) {
   const { data, error } = await supabase.from("masters").update(patch).eq("id", masterId).select().single();
   return { row: data, error };
+}
+
+/** 홈 — 멤버: 최근 대화 */
+export async function fetchRecentConversations(supabase, userId, limit = 5) {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id, updated_at, clone_id, clones(name, color, av)")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  return { list: data || [], error };
+}
+
+/** 홈 — 멤버: 토큰 요약 */
+export async function fetchTokenSummary(supabase, userId) {
+  const [balRes, bonusRes] = await Promise.all([
+    supabase.from("token_balances").select("purchased_balance").maybeSingle(),
+    supabase
+      .from("bonus_tokens")
+      .select("remaining, expires_at, is_expired")
+      .eq("user_id", userId)
+      .gt("remaining", 0),
+  ]);
+  const purchased = balRes.data?.purchased_balance ?? 0;
+  const now = Date.now();
+  const bonus = (bonusRes.data || [])
+    .filter((b) => !b.is_expired && new Date(b.expires_at).getTime() > now)
+    .reduce((s, b) => s + (b.remaining || 0), 0);
+  return { purchased, bonus, total: purchased + bonus, error: balRes.error || bonusRes.error };
+}
+
+/** 마스터 소유 클론 목록 */
+export async function fetchClonesForMaster(supabase, masterId) {
+  const { data, error } = await supabase
+    .from("clones")
+    .select("id, name, is_active, token_price, discount, color, av, updated_at")
+    .eq("master_id", masterId)
+    .order("updated_at", { ascending: false });
+  return { rows: data || [], error };
+}
+
+export async function fetchMasterHomeSummary(supabase, userId) {
+  const { data: master, error: mErr } = await supabase.from("masters").select("id, name, is_verified").eq("user_id", userId).maybeSingle();
+  if (mErr || !master) {
+    return { master: null, clonesTotal: 0, clonesActive: 0, pendingFeedback: [], error: mErr };
+  }
+  const { data: clones } = await supabase.from("clones").select("id, name, is_active").eq("master_id", master.id);
+  const list = clones || [];
+  const cloneIds = list.map((c) => c.id);
+  let pendingFeedback = [];
+  if (cloneIds.length) {
+    const { data: fb } = await supabase
+      .from("feedbacks")
+      .select("id, message, rating, created_at, clone_id, clones(name)")
+      .in("clone_id", cloneIds)
+      .is("reply", null)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    pendingFeedback = fb || [];
+  }
+  return {
+    master,
+    clonesTotal: list.length,
+    clonesActive: list.filter((c) => c.is_active).length,
+    pendingFeedback,
+    error: null,
+  };
+}
+
+const LS_TOKEN_MOCK = "clone_me_token_mock";
+
+function readLocalTokenMock(userId) {
+  if (typeof window === "undefined" || !userId) return { purchased: 0, txs: [] };
+  try {
+    const raw = window.localStorage.getItem(`${LS_TOKEN_MOCK}_${userId}`);
+    if (!raw) return { purchased: 0, txs: [] };
+    const o = JSON.parse(raw);
+    return {
+      purchased: Math.max(0, Number(o.purchased) || 0),
+      txs: Array.isArray(o.txs) ? o.txs : [],
+    };
+  } catch {
+    return { purchased: 0, txs: [] };
+  }
+}
+
+function writeLocalTokenMock(userId, data) {
+  if (typeof window === "undefined" || !userId) return;
+  window.localStorage.setItem(`${LS_TOKEN_MOCK}_${userId}`, JSON.stringify(data));
+}
+
+/** 로컬 Mock 충전 (DB 정책 없을 때) */
+export function localMockPurchase(userId, pack) {
+  const cur = readLocalTokenMock(userId);
+  const nextPurchased = cur.purchased + pack.tokens;
+  const tx = {
+    id: `local_${Date.now()}`,
+    created_at: new Date().toISOString(),
+    type: "purchase",
+    amount: pack.tokens,
+    description: `[브라우저 Mock] ${pack.name} ${pack.tokens}T`,
+    source: "local",
+  };
+  cur.txs.unshift(tx);
+  writeLocalTokenMock(userId, { purchased: nextPurchased, txs: cur.txs.slice(0, 200) });
+  return { purchased: nextPurchased, tx };
+}
+
+export function getLocalTokenMock(userId) {
+  return readLocalTokenMock(userId);
+}
+
+export async function fetchTokenTransactions(supabase, userId, limit = 80) {
+  const { data, error } = await supabase
+    .from("token_transactions")
+    .select("id, amount, type, token_type, description, created_at, clone_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return { rows: data || [], error };
+}
+
+/** DB Mock 결제 — token_mock_purchase_rls.sql 적용 필요 */
+export async function mockPurchaseTokenPack(supabase, userId, pack) {
+  const { tokens, name, won, priceLabel } = pack;
+  const { data: row, error: selErr } = await supabase.from("token_balances").select("purchased_balance").eq("user_id", userId).maybeSingle();
+  if (selErr) return { error: selErr };
+
+  let newPurchased;
+  if (!row) {
+    const { error: insErr } = await supabase.from("token_balances").insert({
+      user_id: userId,
+      purchased_balance: tokens,
+    });
+    if (insErr) return { error: insErr };
+    newPurchased = tokens;
+  } else {
+    newPurchased = (row.purchased_balance ?? 0) + tokens;
+    const { error: upErr } = await supabase
+      .from("token_balances")
+      .update({ purchased_balance: newPurchased, updated_at: new Date().toISOString() })
+      .eq("user_id", userId);
+    if (upErr) return { error: upErr };
+  }
+
+  const { error: txErr } = await supabase.from("token_transactions").insert({
+    user_id: userId,
+    amount: tokens,
+    token_type: "purchased",
+    type: "purchase",
+    description: `[테스트결제] ${name} (${tokens}T · ${priceLabel})`,
+    balance_after_purchased: newPurchased,
+    actual_price: won,
+  });
+  if (txErr) return { error: txErr, newPurchased };
+  return { newPurchased, error: null };
 }

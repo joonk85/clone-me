@@ -19,7 +19,7 @@ export default function Nav() {
   const by = [
     { path: "/", l: "홈" },
     { path: "/market", l: "마켓" },
-    { path: "/my", l: "내 구독" },
+    { path: "/my", l: "마이" },
   ];
   const items = role === "creator" ? cr : by;
   const activePath = pathname.startsWith("/dashboard")

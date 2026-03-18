@@ -72,11 +72,22 @@ export default function MyClones() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: c.color }}>
-                    ₩{c.discount > 0 ? Math.round(c.price * (1 - c.discount / 100)).toLocaleString() : c.price.toLocaleString()}
-                  </div>
-                  {c.discount > 0 && <div style={{ fontSize: 10, color: "var(--am)", textDecoration: "none", fontFamily: "var(--mo)" }}>-{c.discount}% 할인중</div>}
-                  <div style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>/월</div>
+                  {c.token_price != null ? (
+                    <>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: c.color }}>💎 {c.token_price}</div>
+                      <div style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>토큰/턴</div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: c.color }}>
+                        ₩{c.discount > 0 ? Math.round(c.price * (1 - c.discount / 100)).toLocaleString() : c.price.toLocaleString()}
+                      </div>
+                      {c.discount > 0 && (
+                        <div style={{ fontSize: 10, color: "var(--am)", textDecoration: "none", fontFamily: "var(--mo)" }}>-{c.discount}% 할인중</div>
+                      )}
+                      <div style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>/월</div>
+                    </>
+                  )}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--cy)", fontFamily: "var(--mo)" }}>상세보기 →</div>
               </div>

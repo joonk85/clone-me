@@ -36,6 +36,11 @@ SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1;
 - `auth.users` 가입 시 `public.users` 자동 생성 트리거 포함
 - 재실행 시 정책 이름 충돌 시 에러 → 필요 시 기존 정책 DROP 후 재실행
 
+**403 Forbidden (users / clones / masters …):** 스키마만 만들었을 때 **`anon`·`authenticated` 에 GRANT 가 없으면** REST API가 전부 403 납니다.
+
+1. **`docs/supabase/grant_public_api.sql`** 전체 실행 ← **마켓·내구독·토큰 등 한 번에 권장**
+2. `users`만 따로 쓰려면 **`docs/supabase/fix_users_grants_rls.sql`** (위 1번에 users 포함됨)
+
 ## 4. 로그인/가입 쓰기
 
 **지금 하면 되는 것 (이것만 하면 됨)**  
@@ -99,10 +104,30 @@ WHERE NOT EXISTS (SELECT 1 FROM public.users pu WHERE pu.id = au.id);
 `docs/supabase/signup_bonus_trigger.sql` 실행 → `token_balances` 행 생성 + `bonus_tokens` 5개(30일) + `token_transactions` 기록.  
 기존 `handle_new_user` 를 이 스크립트가 통째로 교체합니다. **이미 가입한 계정**은 파일 하단 주석 백필 SQL로 선택 적용.
 
+## 4c. Mock 토큰 충전 (`/my/tokens`)
+
+`docs/supabase/token_mock_purchase_rls.sql` 실행 → 앱에서 **테스트 결제 시뮬레이션** 시 `token_balances`·`token_transactions` 에 반영.  
+미실행 시에도 상점의 **「브라우저에만 충전」**으로 UI 테스트 가능.
+
+## 4d. 프로필 사진 Storage (`/my/profile`)
+
+`docs/supabase/storage_avatars.sql` 실행 → 버킷 **`avatars`**(Public) + 본인 폴더(`{uuid}/`)에만 업로드 가능한 정책.
+
+## 4e. 마스터 인증 서류 + 자동 ✓ 배지 (`/my/master/verify`)
+
+1. **`docs/supabase/storage_master_verifications.sql`** — 버킷 **`master-verifications`**, 마스터 본인 폴더(`{master_id}/`)만 업로드.  
+2. **`docs/supabase/trigger_master_verification_auto_verify.sql`** — `career` / `certificate` 증빙이 `approved`로 저장되면 `masters.is_verified = true`.
+
+## 4f. 보너스 토큰 만료 (CRON)
+
+- **`docs/supabase/cron_expire_bonus_tokens.sql`** — 함수 `expire_bonus_tokens_run()` : 만료된 `bonus_tokens` → `remaining=0`, `is_expired=true`, `token_transactions` 에 `bonus_expired` 기록.
+- **pg_cron** 예시는 파일 주석 참고. 미사용 시 **service_role** 로 `POST /rest/v1/rpc/expire_bonus_tokens_run` 스케줄 호출 또는 SQL Editor에서 수동 실행.
+- CLI 배포 시 `supabase/migrations/20260318120000_expire_bonus_tokens_run.sql` 에 동일 함수 포함.
+
 ## 5. 앱 연동 (내 정보 · 마스터 · 마켓)
 
 - **`/my/settings`** — `public.users` 조회·수정 (닉네임, 관심사, 알림)
-- **`/my/master`** — `public.masters` 등록·수정 (이름, bio, slug, 링크 등). 이후 **활성 클론**이 있어야 마켓에 노출
+- **`/my/master/profile`** — `public.masters` 등록·수정. **`/my/master/*`** — 인증·클론·수익·단가·정산 탭
 - **`/market`** — `clones` + `masters` 조인 조회 (`is_active = true` 만)
 
 ## 6. Supabase CLI (선택)

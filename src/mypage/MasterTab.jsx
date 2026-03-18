@@ -143,11 +143,15 @@ export default function MasterTab() {
       <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 10 }}>MASTER</div>
       <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>마스터 프로필</h1>
       <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 20, fontSize: 13 }}>
-        마켓 카드·클론 페이지에 쓰이는 정보입니다. 저장 후{" "}
+        마켓 카드·클론 페이지에 쓰이는 정보입니다.         저장 후{" "}
         <Link to="/dashboard/create" style={{ color: "var(--cy)" }}>
           클론 만들기
+        </Link>{" "}
+        또는{" "}
+        <Link to="/my/master/clones" style={{ color: "var(--cy)" }}>
+          내 클론
         </Link>
-        에서 클론을 활성화하면 마켓에 나옵니다.
+        에서 관리하세요.
       </p>
 
       {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12 }}>{err}</p> : null}

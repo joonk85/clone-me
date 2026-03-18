@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Av from "../common/Av";
 import Bt from "../common/Bt";
 import Cd from "../common/Cd";
+import MasterBadges from "../common/MasterBadges";
 import Tg from "../common/Tg";
 import { FREE_BASE, FREE_BONUS } from "../lib/tokens";
 import { getSupabaseBrowserClient } from "../lib/supabase";
@@ -91,7 +92,7 @@ export default function Market() {
               <br />
               마스터로 로그인 후 프로필을 등록하고, 클론을 만들어 <strong>활성화</strong>하면 여기에 표시됩니다.
             </p>
-            <Link to="/my/master" style={{ color: "var(--cy)", fontWeight: 700 }}>
+            <Link to="/my/master/profile" style={{ color: "var(--cy)", fontWeight: 700 }}>
               마스터 프로필 →
             </Link>
           </Cd>
@@ -116,7 +117,7 @@ export default function Market() {
                       <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 1 }}>{c.name}</div>
                       <div style={{ fontSize: 11, color: "var(--tx3)", fontFamily: "var(--mo)" }}>{c.title}</div>
                     </div>
-                    <Tg label="✓ 검증" c="go" />
+                    <MasterBadges verified={c.isVerified} affiliate={c.isAffiliate} />
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: c.color, marginBottom: 8, lineHeight: 1.5, fontStyle: "italic" }}>&quot;{c.signature || c.bio}&quot;</div>
                   <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 9 }}>{(c.tags || []).slice(0, 3).map((t) => <Tg key={t} label={t} />)}</div>
@@ -176,7 +177,7 @@ export default function Market() {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 2 }}>
                         <span style={{ fontSize: 15, fontWeight: 800 }}>{c.name}</span>
-                        {c.featured && <Tg label="✓ 검증" c="go" />}
+                        <MasterBadges verified={c.isVerified} affiliate={c.isAffiliate} />
                       </div>
                       <div style={{ fontSize: 12, color: "var(--tx2)", marginBottom: 6 }}>{c.title}</div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: c.color, marginBottom: 8, lineHeight: 1.5, fontStyle: "italic" }}>&quot;{c.signature || c.bio}&quot;</div>

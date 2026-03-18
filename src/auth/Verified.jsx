@@ -59,7 +59,7 @@ export default function Verified() {
     } catch {
       /* ignore */
     }
-    navigate("/my", { replace: true });
+    navigate("/my/profile", { replace: true });
   };
 
   useEffect(() => {
