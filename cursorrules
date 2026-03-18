@@ -1,0 +1,104 @@
+# clone.me — Cursor Global Rules
+
+## 프로젝트 컨텍스트
+이 프로젝트는 **clone.me** — 한국 최초 지식 클론 플랫폼입니다.
+모든 작업 전 반드시 `agents/BRAIN.md`를 읽으세요.
+
+## 필수 참조 파일
+- `agents/BRAIN.md` — 프로젝트 전체 기억 및 결정사항
+- `docs/PRD_v4.2.md` — 제품 요구사항 (최신, 모든 이전 버전 대체)
+- `docs/STYLE_GUIDE.md` — 디자인 시스템
+
+## 에이전트 역할
+특정 작업 시 해당 에이전트 파일을 참조하세요:
+- 제품 결정 → `agents/PM.md`
+- UI 컴포넌트 → `agents/UXUI.md`
+- 브랜드/비주얼 → `agents/BRAND.md`
+- 시장 조사 → `agents/RESEARCH.md`
+- 기술 구조 / RAG 설계 → `agents/ARCHITECT.md`
+- 코딩 / RAG 구현 → `agents/DEV.md`
+- 테스트 / 품질 → `agents/QA.md`
+- 법률/정책 → `agents/LEGAL.md`
+
+## 코딩 원칙
+- 언어: React 18 + Vite 4 (JSX)
+- 라우팅: React Router v6
+- 스타일: CSS Variables (STYLE_GUIDE.md 준수, 하드코딩 금지)
+- DB: Supabase (PostgreSQL + pgvector)
+- 임베딩: Anthropic voyage-3
+- 모바일 우선 (isMobile breakpoint 768px)
+- 한국어 UI, 영어 코드/변수명
+- 컴포넌트는 단일 책임 원칙
+- 항상 에러 처리 + 로딩 + 빈 상태 처리
+
+## 절대 하지 말 것
+- 흰색 배경 사용
+- 인라인 스타일에 하드코딩된 컬러 (CSS Variables 사용)
+- 어드민 기능 구현 (MVP 범위 외, Phase 4)
+- 실제 결제 연동 (Phase 3 전)
+- security_delete_after_training 기본값 ON 설정 (원본 보관이 기본)
+- 이전 PRD 버전 (v3.x, v4.0, v4.1) 참조
+- MVP에서 Gemini 코드 구현 (MVP = Claude 전용, Gemini는 Live(AWS) 전용)
+
+## 핵심 상수 (코드에서 직접 사용)
+```js
+const FREE_BASE = 5
+const FREE_BONUS = 10
+const MONTHLY_CAP = 200
+const MAX_CLONES = 3
+const CHUNK_SIZE = 500
+const TOP_K_CHUNKS = 5
+```
+
+## AI 모델 전략 요약
+- MVP (Vercel): Claude 전용 — ANTHROPIC_API_KEY만 사용
+- Live (AWS): Claude + Gemini 병용 — GEMINI_API_KEY 추가
+- 텍스트 추출(PDF/DOCX) + 임베딩(voyage-3): 항상 Claude API 고정
+- process-file 파일 전달: base64를 req.body에 포함 (MVP/AWS 모두 가능)
+
+## 코드 품질 원칙
+
+### 파일 길이
+- 컴포넌트 파일 최대 300줄 (초과 시 하위 컴포넌트로 분리)
+- 함수 최대 50줄 (초과 시 별도 함수로 추출)
+- 유틸 함수는 src/utils/ 또는 해당 lib 파일로 분리
+
+### 주석 규칙 (한국어 필수)
+- 컴포넌트 상단: 역할 한 줄 설명
+  // 마켓플레이스 — 클론 목록 표시 + 검색/필터
+- 복잡한 로직 위: 무엇을 왜 하는지
+  // 보너스 토큰이 만료일 빠른 순으로 먼저 차감됨
+- API 호출 위: 어떤 데이터를 가져오는지
+  // 활성 클론 + 마스터 정보 조인해서 가져옴
+- TODO/FIXME는 영어 허용
+  // TODO: Phase 3에서 실제 결제 연동
+
+### 네이밍 컨벤션
+- 컴포넌트: PascalCase (CloneDash, MasterProfile)
+- 함수/변수: camelCase (fetchClones, isLoading)
+- 상수: UPPER_SNAKE_CASE (FREE_BASE, MONTHLY_CAP)
+- Supabase 테이블명: snake_case 그대로 사용
+- CSS Variables: STYLE_GUIDE.md 약어 그대로 (var(--cy), var(--tx))
+
+### 컴포넌트 구조 순서 (항상 이 순서 유지)
+1. imports
+2. 상수/타입
+3. 컴포넌트 함수
+   a. hooks (useAuth, useWindowSize 등)
+   b. state (useState)
+   c. effects (useEffect)
+   d. 핸들러 함수
+   e. 렌더링 로직
+4. return JSX
+5. export default
+
+### 에러 처리
+- 모든 Supabase 쿼리: try/catch 필수
+- 사용자에게 보이는 에러: 한국어 메시지
+- console.error에는 영어 기술 정보 포함
+
+### 금지 패턴
+- 중첩 삼항 연산자 2단계 이상 금지
+- any 타입 사용 금지
+- 인라인 스타일에 하드코딩 컬러 금지 (CSS Variables만)
+- 300줄 넘는 단일 파일 금지
