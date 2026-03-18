@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import Av from "../common/Av";
 import Bt from "../common/Bt";
+import { ErrorBanner } from "../common/UiStates";
 import Cd from "../common/Cd";
 import Sw from "../common/Sw";
 import { useAuth } from "../contexts/AuthContext";
@@ -234,7 +235,7 @@ export default function Create() {
   return (
     <div style={{ minHeight: 600, padding: "18px 18px 40px" }}>
       <div style={{ maxWidth: 500, margin: "0 auto" }}>
-        {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12 }}>{err}</p> : null}
+        {err ? <ErrorBanner style={{ marginBottom: 12 }}>{err}</ErrorBanner> : null}
         <div style={{ display: "flex", marginBottom: 24 }}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>

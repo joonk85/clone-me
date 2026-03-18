@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Bt from "../../common/Bt";
+import { ErrorBanner } from "../../common/UiStates";
 import MasterBadges from "../../common/MasterBadges";
 import { useAuth } from "../../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
@@ -190,7 +191,7 @@ export default function MasterVerify() {
         )}
       </div>
 
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12, lineHeight: 1.5 }}>{err}</p> : null}
+      {err ? <ErrorBanner style={{ marginBottom: 12 }}>{err}</ErrorBanner> : null}
       {ok ? <p style={{ color: "var(--gn)", fontSize: 13, marginBottom: 12, lineHeight: 1.5 }}>{ok}</p> : null}
 
       <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, border: "1px solid var(--br)", background: "var(--sf)" }}>

@@ -21,7 +21,7 @@ export default function Bt({
       border: "1px solid var(--br)",
     },
     sf: { background: "var(--sf2)", color: "var(--tx)", border: "none" },
-    dn: { background: "var(--rd)", color: "#fff", border: "none" },
+    dn: { background: "var(--rd)", color: "var(--on-rd)", border: "none" },
   };
   return (
     <button

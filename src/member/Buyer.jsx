@@ -50,7 +50,7 @@ export default function Buyer() {
                 cursor: "pointer",
                 fontFamily: "var(--fn)",
                 fontWeight: tab === "history" ? 700 : 400,
-                boxShadow: tab === "history" ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
+                boxShadow: tab === "history" ? "0 2px 10px var(--cyg)" : "none",
                 transition: "all 0.15s",
               }}
             >
@@ -70,7 +70,7 @@ export default function Buyer() {
                 cursor: "pointer",
                 fontFamily: "var(--fn)",
                 fontWeight: tab === "subs" ? 700 : 400,
-                boxShadow: tab === "subs" ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
+                boxShadow: tab === "subs" ? "0 2px 10px var(--cyg)" : "none",
                 transition: "all 0.15s",
               }}
             >
@@ -86,7 +86,7 @@ export default function Buyer() {
               borderRadius: 9,
               border: "none",
               background: "var(--cy)",
-              color: "#000",
+              color: "var(--on-cy)",
               fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",

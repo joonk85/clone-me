@@ -64,9 +64,9 @@ export default function MasterProfile({ clone, onBack, onSubscribe, subscribed, 
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {clone.links.ig && <a href="#" style={{ padding: "4px 10px", borderRadius: 7, background: "rgba(225,48,108,0.1)", color: "#E1306C", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>📷 {clone.links.ig}</a>}
-            {clone.links.yt && <a href="#" style={{ padding: "4px 10px", borderRadius: 7, background: "rgba(255,0,0,0.08)", color: "#ff5555", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>▶ YouTube</a>}
-            {clone.links.fc && <a href="#" style={{ padding: "4px 10px", borderRadius: 7, background: "rgba(255,179,71,0.08)", color: "var(--am)", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>🎓 패스트캠퍼스</a>}
+            {clone.links.ig && <a href="#" style={{ padding: "4px 10px", borderRadius: "var(--r-md)", background: "var(--sf2)", border: "1px solid var(--br2)", color: "var(--tx2)", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>📷 {clone.links.ig}</a>}
+            {clone.links.yt && <a href="#" style={{ padding: "4px 10px", borderRadius: "var(--r-md)", background: "var(--tg-rd-bg)", border: "1px solid var(--err-border)", color: "var(--rd)", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>▶ YouTube</a>}
+            {clone.links.fc && <a href="#" style={{ padding: "4px 10px", borderRadius: "var(--r-md)", background: "var(--am-muted)", border: "1px solid var(--am-line)", color: "var(--am)", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>🎓 패스트캠퍼스</a>}
             {clone.links.sub && <a href="#" style={{ padding: "4px 10px", borderRadius: 7, background: "var(--cyd)", color: "var(--cy)", fontSize: 11, textDecoration: "none", fontFamily: "var(--mo)" }}>✉ 뉴스레터</a>}
           </div>
         </Cd>

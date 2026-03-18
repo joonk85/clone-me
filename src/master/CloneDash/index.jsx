@@ -56,7 +56,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
   const [rYear,setRYear]=useState(now2.getFullYear());
   const [rMonth,setRMonth]=useState(now2.getMonth()+1);
   const NOTICE_TYPES=["일반","📌 중요","🎉 이벤트","📚 자료 업데이트","⚠️ 주의사항"];
-  const FTYPE_C={PDF:"var(--rd)",DOCX:"var(--cy)",TXT:"var(--gn)",SRT:"var(--am)",NOTION:"var(--pu)",VIDEO:"#ff8c42"};
+  const FTYPE_C={PDF:"var(--rd)",DOCX:"var(--cy)",TXT:"var(--gn)",SRT:"var(--am)",NOTION:"var(--pu)",VIDEO:"var(--am)"};
   const matFileRef=useRef(null);
   const CAT_COLORS={PDF:"var(--rd)","DOCX":"var(--cy)","TXT":"var(--gn)","SRT":"var(--am)"};
 
@@ -372,7 +372,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 );
               })()}
             </div>
-            <div style={{fontSize:11,color:"rgba(79,255,176,0.8)",fontFamily:"var(--mo)",marginTop:8}}>🔐 AES-256 암호화 저장</div>
+            <div style={{fontSize:11,color:"var(--gn)",fontFamily:"var(--mo)",marginTop:8,opacity:0.85}}>🔐 AES-256 암호화 저장</div>
           </Cd>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -488,7 +488,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 </div>
                 <div style={{borderTop:"1px solid var(--br)",padding:"8px 10px",display:"flex",gap:7,background:"var(--sf)"}}>
                   <input value={testInp} onChange={e=>setTestInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&testSend()} placeholder="구독자 입장에서 질문해보세요..." style={{flex:1,padding:"7px 10px",border:"1px solid var(--br)",borderRadius:8,background:"var(--sf2)",color:"var(--tx)",fontSize:12,outline:"none",fontFamily:"var(--fn)"}}/>
-                  <button type="button" onClick={()=>testSend()} disabled={!testInp.trim()||testLoad} style={{padding:"7px 14px",borderRadius:8,border:"none",background:clone.color||"var(--cy)",color:"#000",fontSize:11,fontWeight:700,cursor:testInp.trim()&&!testLoad?"pointer":"not-allowed",opacity:testInp.trim()&&!testLoad?1:0.4,fontFamily:"var(--fn)"}}>전송</button>
+                  <button type="button" onClick={()=>testSend()} disabled={!testInp.trim()||testLoad} style={{padding:"7px 14px",borderRadius:"var(--r-md)",border:"none",background:clone.color||"var(--cy)",color:"var(--on-cy)",fontSize:11,fontWeight:700,cursor:testInp.trim()&&!testLoad?"pointer":"not-allowed",opacity:testInp.trim()&&!testLoad?1:0.4,fontFamily:"var(--fn)"}}>전송</button>
                 </div>
               </div>
               <div style={{display:"flex",justifyContent:"flex-end",marginTop:7}}>
@@ -532,7 +532,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>🔗 외부 자료 연동</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
-              <div style={{width:34,height:34,borderRadius:8,background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:900,color:"#000",flexShrink:0}}>N</div>
+              <div style={{width:34,height:34,borderRadius:"var(--r-md)",background:"var(--cy)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:900,color:"var(--on-cy)",flexShrink:0,fontFamily:"var(--fn)"}}>N</div>
               <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700}}>Notion 워크스페이스</div><div style={{fontSize:10,color:"var(--gn)",fontFamily:"var(--mo)",marginTop:1}}>● kimb2b.notion.site · 연결됨 · 주 1회 자동 싱크</div></div>
               <Bt v="gh" sz="sm">설정</Bt>
             </div>
@@ -549,7 +549,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
               <div style={{width:34,height:34,borderRadius:8,background:"rgba(255,85,85,0.12)",border:"1px solid rgba(255,85,85,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>▶</div>
               <div style={{flex:1}}><div style={{fontSize:12,fontWeight:700}}>YouTube 자막 자동 추출</div><div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",marginTop:1}}>미연결 — 채널 연결 후 영상 자막 자동 수집</div></div>
-              <Bt v="pr" sz="sm" style={{background:"#ff5555"}}>연결하기</Bt>
+              <Bt v="pr" sz="sm" style={{background:"var(--rd)",color:"var(--on-rd)"}}>연결하기</Bt>
             </div>
             <div style={{padding:"8px 11px",background:"rgba(255,85,85,0.06)",border:"1px solid rgba(255,85,85,0.15)",borderRadius:8,fontSize:11,color:"var(--tx2)"}}>📺 채널 연결 시 영상 자막이 자동 수집됩니다. 톤 & 스타일 학습에 가장 효과적인 자료입니다.</div>
           </Cd>

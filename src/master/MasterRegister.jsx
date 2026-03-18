@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import Bt from "../common/Bt";
+import { ErrorBanner } from "../common/UiStates";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 import { fetchMasterForUser, insertMaster, updateMyUserRow } from "../lib/supabaseQueries";
@@ -199,7 +200,7 @@ export default function MasterRegister() {
         ))}
       </div>
 
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 16 }}>{err}</p> : null}
+      {err ? <ErrorBanner style={{ marginBottom: 16 }}>{err}</ErrorBanner> : null}
 
       {/* Step 1 */}
       {step === 1 && (
@@ -279,7 +280,7 @@ export default function MasterRegister() {
                 padding: 16,
                 borderRadius: 12,
                 border: verifyPath === "later" ? "2px solid var(--pu)" : "1px solid var(--br)",
-                background: verifyPath === "later" ? "rgba(183,148,255,0.08)" : "var(--sf2)",
+                background: verifyPath === "later" ? "var(--tg-pu-bg)" : "var(--sf2)",
                 cursor: "pointer",
                 fontFamily: "var(--fn)",
                 color: "var(--tx)",

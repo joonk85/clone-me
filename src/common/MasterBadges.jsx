@@ -28,9 +28,9 @@ export default function MasterBadges({ verified, affiliate, size = "sm" }) {
             ...pill,
             fontSize: fs,
             padding: py,
-            background: "rgba(79,255,176,0.14)",
+            background: "var(--tg-gn-bg)",
             color: "var(--gn)",
-            border: "1px solid rgba(79,255,176,0.35)",
+            border: "1px solid var(--br2)",
           }}
         >
           ✓ 검증
@@ -43,9 +43,9 @@ export default function MasterBadges({ verified, affiliate, size = "sm" }) {
             ...pill,
             fontSize: fs,
             padding: py,
-            background: "rgba(183,148,255,0.12)",
+            background: "var(--tg-pu-bg)",
             color: "var(--pu)",
-            border: "1px solid rgba(183,148,255,0.35)",
+            border: "1px solid var(--br2)",
           }}
         >
           🤝 제휴

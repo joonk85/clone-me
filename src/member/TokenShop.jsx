@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import Bt from "../common/Bt";
+import { ErrorBanner } from "../common/UiStates";
 import Cd from "../common/Cd";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
@@ -206,7 +207,7 @@ export default function TokenShop() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.65)",
+            background: "var(--overlay-dim)",
             zIndex: 2000,
             display: "flex",
             alignItems: "center",
@@ -233,7 +234,7 @@ export default function TokenShop() {
               <br />
               실제 과금 없이 잔액만 증가합니다.
             </p>
-            {payErr ? <p style={{ color: "#f66", fontSize: 12, marginBottom: 12, lineHeight: 1.5 }}>{payErr}</p> : null}
+            {payErr ? <ErrorBanner style={{ marginBottom: 12 }}>{payErr}</ErrorBanner> : null}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <Bt v="pr" on={() => runMockPay(modalPack, false)} dis={payBusy}>
                 {payBusy ? "처리 중…" : "결제 시뮬레이션 (DB 반영)"}

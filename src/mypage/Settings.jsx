@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import Bt from "../common/Bt";
+import { ErrorBanner } from "../common/UiStates";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 import { fetchMyUserRow, updateMyUserRow } from "../lib/supabaseQueries";
@@ -94,7 +95,7 @@ export default function Settings() {
         </Link>
       </p>
 
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12 }}>{err}</p> : null}
+      {err ? <ErrorBanner style={{ marginBottom: 12 }}>{err}</ErrorBanner> : null}
       {msg ? <p style={{ color: "var(--cy)", fontSize: 13, marginBottom: 12 }}>{msg}</p> : null}
 
       {loading ? (

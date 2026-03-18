@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Bt from "../common/Bt";
+import { ErrorBanner } from "../common/UiStates";
 import { useAuth } from "../contexts/AuthContext";
 import { useAppState } from "../contexts/AppStateContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
@@ -10,7 +11,7 @@ const fieldStyle = {
   width: "100%",
   padding: "10px 12px",
   border: "1px solid var(--br)",
-  borderRadius: 8,
+  borderRadius: "var(--r-md)",
   background: "var(--sf2)",
   color: "var(--tx)",
   fontSize: 14,
@@ -134,7 +135,7 @@ export default function Onboarding() {
         ))}
       </div>
 
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 14 }}>{err}</p> : null}
+      {err ? <ErrorBanner>{err}</ErrorBanner> : null}
 
       {step === 1 && (
         <>

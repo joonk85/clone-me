@@ -1,50 +1,65 @@
-import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../contexts/AuthContext";
 import { useWindowSize } from "../hooks/useWindowSize";
+import { shouldShowMobileTabBar } from "../lib/navShell";
+
+const items = [
+  { path: "/", l: "홈", short: "홈" },
+  { path: "/market", l: "마켓", short: "마켓" },
+  { path: "/my", l: "마이", short: "마이" },
+];
+
+function TabIcon({ name, active }) {
+  const c = active ? "var(--cy)" : "var(--tx3)";
+  const sw = 1.75;
+  if (name === "home") {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden style={{ display: "block" }}>
+        <path
+          d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-7H10v7H5a1 1 0 01-1-1v-9.5z"
+          stroke={c}
+          strokeWidth={sw}
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (name === "market") {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden style={{ display: "block" }}>
+        <path d="M4 8h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V8z" stroke={c} strokeWidth={sw} strokeLinejoin="round" />
+        <path d="M8 8V6a4 4 0 018 0v2" stroke={c} strokeWidth={sw} strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden style={{ display: "block" }}>
+      <circle cx="12" cy="9" r="4" stroke={c} strokeWidth={sw} />
+      <path d="M6 21v-1a6 6 0 0112 0v1" stroke={c} strokeWidth={sw} strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function Nav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useAuth();
 
-  const items = [
-    { path: "/", l: "홈" },
-    { path: "/market", l: "마켓" },
-    { path: "/my", l: "마이" },
-  ];
   const activePath = pathname.startsWith("/my")
     ? "/my"
     : pathname.startsWith("/market")
       ? "/market"
       : "/";
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
-
-  const handleLogo = () => {
-    setMenuOpen(false);
-    navigate("/");
-  };
-  const handleTab = (path) => () => {
-    setMenuOpen(false);
-    navigate(path);
-  };
+  const handleLogo = () => navigate("/");
 
   const tabBtn = (path, l, isActive) => (
     <button
       key={path}
       type="button"
-      onClick={handleTab(path)}
+      onClick={() => navigate(path)}
       style={{
         minHeight: "var(--touch-min)",
         padding: "0 14px",
@@ -63,6 +78,8 @@ export default function Nav() {
     </button>
   );
 
+  const showTabBar = isMobile && shouldShowMobileTabBar(pathname);
+
   if (isMobile) {
     return (
       <>
@@ -75,13 +92,13 @@ export default function Nav() {
             backdropFilter: "blur(16px)",
             borderBottom: "1px solid var(--br)",
             paddingTop: "var(--safe-top)",
-            paddingLeft: "max(var(--page-pad-x-mobile), var(--safe-left))",
-            paddingRight: "max(var(--page-pad-x-mobile), var(--safe-right))",
+            paddingLeft: "max(var(--page-pad-x), var(--safe-left))",
+            paddingRight: "max(var(--page-pad-x), var(--safe-right))",
             minHeight: "calc(var(--nav-h-mobile) + var(--safe-top))",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 10,
+            gap: 12,
             flexShrink: 0,
           }}
         >
@@ -90,119 +107,127 @@ export default function Nav() {
             onKeyDown={(e) => e.key === "Enter" && handleLogo()}
             role="button"
             tabIndex={0}
-            style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", flexShrink: 0 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }}
           >
             <div
               style={{
-                width: 26,
-                height: 26,
+                width: 28,
+                height: 28,
                 borderRadius: "50%",
                 background: "var(--cy)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 0 10px var(--cy)",
+                boxShadow: "0 0 12px var(--cyg)",
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)" }}>c</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: "var(--on-cy)", fontFamily: "var(--fn)" }}>c</span>
             </div>
             <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)" }}>
               clone.me
             </span>
           </div>
-          <button
-            type="button"
-            aria-expanded={menuOpen}
-            aria-label="메뉴 열기"
-            onClick={() => setMenuOpen((o) => !o)}
-            style={{
-              minWidth: "var(--touch-min)",
-              minHeight: "var(--touch-min)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "var(--r-md)",
-              border: "1px solid var(--br)",
-              background: "var(--sf2)",
-              color: "var(--tx)",
-              fontSize: 20,
-              lineHeight: 1,
-              cursor: "pointer",
-              fontFamily: "var(--fn)",
-            }}
-          >
-            {menuOpen ? "✕" : "☰"}
-          </button>
-        </header>
-
-        {menuOpen && (
-          <>
-            <div
-              role="presentation"
-              onClick={() => setMenuOpen(false)}
+          {!user ? (
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
               style={{
-                position: "fixed",
-                inset: 0,
-                background: "var(--overlay-dim)",
-                zIndex: "var(--z-nav-backdrop)",
-              }}
-            />
-            <nav
-              style={{
-                position: "fixed",
-                top: 0,
-                right: 0,
-                width: "min(300px, 86vw)",
-                height: "100dvh",
-                paddingTop: "calc(var(--safe-top) + 12px)",
-                paddingBottom: "var(--safe-bottom)",
-                paddingLeft: 20,
-                paddingRight: 20,
-                background: "var(--sf)",
-                borderLeft: "1px solid var(--br)",
-                zIndex: "var(--z-nav-drawer)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-                boxShadow: "-12px 0 40px var(--overlay-dim)",
-                animation: "fu 0.2s ease",
+                minHeight: "var(--touch-min)",
+                padding: "0 14px",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--br2)",
+                background: "var(--cyd)",
+                color: "var(--cy)",
+                fontSize: "var(--fs-caption)",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "var(--fn)",
               }}
             >
-              <div
-                style={{
-                  fontSize: "var(--fs-xs)",
-                  color: "var(--cy)",
-                  fontFamily: "var(--mo)",
-                  letterSpacing: "0.08em",
-                  marginBottom: 8,
-                }}
-              >
-                MENU
-              </div>
-              {items.map(({ path, l }) => (
+              로그인
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate("/my/profile")}
+              style={{
+                minHeight: "var(--touch-min)",
+                padding: "0 12px",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--br)",
+                background: "var(--sf2)",
+                color: "var(--tx2)",
+                fontSize: "var(--fs-sm)",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "var(--fn)",
+              }}
+            >
+              내 정보
+            </button>
+          )}
+        </header>
+
+        {showTabBar && (
+          <nav
+            role="navigation"
+            aria-label="주요 메뉴"
+            style={{
+              position: "fixed",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: "var(--z-nav-tabbar)",
+              background: "var(--nav-scrim)",
+              backdropFilter: "blur(20px)",
+              borderTop: "1px solid var(--br)",
+              paddingBottom: "var(--safe-bottom)",
+              display: "flex",
+              alignItems: "stretch",
+              justifyContent: "space-around",
+              minHeight: "calc(var(--nav-tabbar-h) + var(--safe-bottom))",
+              boxShadow: "0 -8px 32px var(--overlay-dim)",
+            }}
+          >
+            {items.map(({ path, short }, i) => {
+              const active = activePath === path;
+              const iconName = i === 0 ? "home" : i === 1 ? "market" : "user";
+              return (
                 <button
                   key={path}
                   type="button"
-                  onClick={handleTab(path)}
+                  onClick={() => navigate(path)}
                   style={{
-                    minHeight: "var(--touch-min)",
-                    textAlign: "left",
-                    padding: "0 12px",
-                    borderRadius: "var(--r-md)",
+                    flex: 1,
+                    maxWidth: 160,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    padding: "8px 4px 10px",
                     border: "none",
-                    background: activePath === path ? "var(--cyd)" : "transparent",
-                    color: activePath === path ? "var(--cy)" : "var(--tx)",
-                    fontSize: "var(--fs-body)",
-                    fontWeight: activePath === path ? 700 : 500,
+                    background: "transparent",
                     cursor: "pointer",
                     fontFamily: "var(--fn)",
+                    color: active ? "var(--cy)" : "var(--tx3)",
                   }}
                 >
-                  {l}
+                  <TabIcon name={iconName} active={active} />
+                  <span
+                    style={{
+                      fontSize: "var(--fs-xs)",
+                      fontWeight: active ? 700 : 500,
+                      letterSpacing: "0.02em",
+                      color: active ? "var(--cy)" : "var(--tx3)",
+                    }}
+                  >
+                    {short}
+                  </span>
                 </button>
-              ))}
-            </nav>
-          </>
+              );
+            })}
+          </nav>
         )}
       </>
     );
@@ -242,7 +267,7 @@ export default function Nav() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 0 10px var(--cy)",
+            boxShadow: "0 0 10px var(--cyg)",
           }}
         >
           <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)" }}>c</span>
@@ -255,11 +280,11 @@ export default function Nav() {
         className="nav-scroll"
         style={{
           display: "flex",
-          gap: 4,
+          gap: 6,
           overflowX: "auto",
           flex: 1,
           justifyContent: "center",
-          maxWidth: 420,
+          maxWidth: 400,
           alignItems: "center",
         }}
       >

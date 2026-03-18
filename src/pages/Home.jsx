@@ -5,6 +5,7 @@ import Av from "../common/Av";
 import MasterBadges from "../common/MasterBadges";
 import Bt from "../common/Bt";
 import Cd from "../common/Cd";
+import LoadingSpinner from "../common/LoadingSpinner";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
@@ -139,15 +140,16 @@ function EmptyPanel({ emoji, title, hint, children }) {
   );
 }
 
-function FeaturedCard({ c, onClick }) {
+function FeaturedCard({ c, onClick, layout = "scroll" }) {
+  const isGrid = layout === "grid";
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        minWidth: 200,
-        maxWidth: 240,
-        flexShrink: 0,
+        ...(isGrid
+          ? { width: "100%", minWidth: 0, maxWidth: "none" }
+          : { minWidth: 220, maxWidth: 260, flexShrink: 0, scrollSnapAlign: "start" }),
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -156,19 +158,22 @@ function FeaturedCard({ c, onClick }) {
         background: "var(--sf2)",
         textAlign: "left",
         cursor: "pointer",
-        transition: "border-color 0.15s, background 0.15s",
+        transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
         fontFamily: "var(--fn)",
+        boxShadow: "0 0 0 0 transparent",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = "var(--br2)";
         e.currentTarget.style.background = "var(--sf3)";
+        e.currentTarget.style.boxShadow = "0 8px 32px var(--cyg)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "var(--br)";
         e.currentTarget.style.background = "var(--sf2)";
+        e.currentTarget.style.boxShadow = "0 0 0 0 transparent";
       }}
     >
-      <div style={{ position: "relative", height: 112, width: "100%", overflow: "hidden", background: "var(--sf)" }}>
+      <div style={{ position: "relative", height: isGrid ? 120 : 118, width: "100%", overflow: "hidden", background: "var(--sf)" }}>
         <div style={{ height: "100%", opacity: 0.95 }}>
           <CloneCover av={c.av} color={c.color} name={c.name} />
         </div>
@@ -244,7 +249,7 @@ export default function Home() {
     const feat = cards.filter((c) => c.featured);
     const rest = cards.filter((c) => !c.featured);
     const merged = [...feat, ...rest].slice(0, 6);
-    setGuestFeatured(merged.slice(0, 3));
+    setGuestFeatured(merged);
   }, []);
 
   useEffect(() => {
@@ -295,25 +300,30 @@ export default function Home() {
   }, [user?.id, loadGuestFeatured]);
 
   const pagePad = {
-    paddingLeft: "max(var(--page-pad-x-mobile), var(--safe-left))",
-    paddingRight: "max(var(--page-pad-x-mobile), var(--safe-right))",
-    paddingTop: isMobile ? 20 : 36,
-    paddingBottom: isMobile ? 28 : 44,
+    paddingLeft: "max(var(--page-pad-x), var(--safe-left))",
+    paddingRight: "max(var(--page-pad-x), var(--safe-right))",
+    paddingTop: isMobile ? 16 : 28,
+    paddingBottom: isMobile ? "calc(28px + var(--safe-bottom))" : "calc(40px + var(--safe-bottom))",
+    background: "var(--bg)",
   };
-  const maxW = { maxWidth: 640, marginLeft: "auto", marginRight: "auto", width: "100%" };
+  const maxWGuest = { maxWidth: 1040, marginLeft: "auto", marginRight: "auto", width: "100%" };
+  const maxWMember = { maxWidth: 720, marginLeft: "auto", marginRight: "auto", width: "100%" };
 
   if (!ready) {
     return (
       <div
         style={{
-          minHeight: "45vh",
+          minHeight: "50vh",
           ...pagePad,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: 14,
         }}
       >
-        <p style={{ fontSize: "var(--fs-caption)", color: "var(--tx3)", fontFamily: "var(--fn)" }}>불러오는 중…</p>
+        <LoadingSpinner size={22} />
+        <p style={{ fontSize: "var(--fs-caption)", color: "var(--tx3)", fontFamily: "var(--mo)", letterSpacing: "0.04em" }}>불러오는 중…</p>
       </div>
     );
   }
@@ -322,137 +332,224 @@ export default function Home() {
   if (mode === "guest") {
     return (
       <div style={{ minHeight: "100%", ...pagePad }}>
-        <div style={maxW}>
-          <section style={{ textAlign: "center" }}>
-            <h1
-              style={{
-                fontSize: isMobile ? "clamp(26px, 7vw, 36px)" : "clamp(32px, 5vw, 48px)",
-                fontWeight: 800,
-                letterSpacing: "-0.035em",
-                color: "var(--tx)",
-                fontFamily: "var(--fn)",
-                lineHeight: 1.08,
-              }}
-            >
-              나만의 전문가 클론과 대화하세요
-            </h1>
-            <p
-              style={{
-                margin: "14px auto 0",
-                maxWidth: 420,
-                fontSize: "var(--fs-lead)",
-                color: "var(--tx2)",
-                lineHeight: 1.7,
-                fontFamily: "var(--fn)",
-              }}
-            >
-              법률·세무·코칭 등 분야별 마스터의 지식을 클론으로. 토큰으로 대화하고, 마스터는 수익을 만듭니다.
-            </p>
+        <div style={maxWGuest}>
+          {/* 히어로 */}
+          <section style={{ position: "relative", textAlign: "center", paddingTop: isMobile ? 8 : 12, paddingBottom: 4 }}>
             <div
+              aria-hidden
               style={{
-                marginTop: 28,
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 12,
-                justifyContent: "center",
+                position: "absolute",
+                left: "50%",
+                top: "-30%",
+                transform: "translateX(-50%)",
+                width: "min(140%, 900px)",
+                height: "85%",
+                background: "radial-gradient(ellipse 55% 45% at 50% 0%, var(--cyd) 0%, transparent 72%)",
+                pointerEvents: "none",
               }}
-            >
-              <Bt v="pr" on={() => navigate("/signup")}>
-                무료로 시작하기
-              </Bt>
-              <Bt v="gh" on={() => navigate("/market")}>
-                마켓 둘러보기
-              </Bt>
-            </div>
-          </section>
-
-          <section
-            style={{
-              marginTop: isMobile ? 36 : 48,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: isMobile ? 10 : 16,
-            }}
-          >
-            {GUEST_STATS.map((s) => (
-              <Cd
-                key={s.label}
+            />
+            <div style={{ position: "relative" }}>
+              <p
                 style={{
-                  padding: isMobile ? "14px 10px" : "18px 14px",
-                  textAlign: "center",
-                  background: "var(--sf2)",
+                  fontFamily: "var(--mo)",
+                  fontSize: "var(--fs-xs)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "var(--cy)",
+                  fontWeight: 600,
+                  marginBottom: 12,
                 }}
               >
-                <p style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "var(--pu)", fontFamily: "var(--mo)" }}>
-                  {s.value}
-                </p>
-                <p style={{ marginTop: 6, fontSize: "var(--fs-xs)", color: "var(--tx2)", fontFamily: "var(--fn)" }}>{s.label}</p>
-                {s.sub && (
-                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", fontFamily: "var(--mo)", marginTop: 2 }}>{s.sub}</p>
-                )}
-              </Cd>
-            ))}
-          </section>
-
-          <section style={{ marginTop: isMobile ? 36 : 48 }}>
-            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <h2
+                clone.me
+              </p>
+              <h1
                 style={{
-                  fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
+                  fontSize: isMobile ? "clamp(1.5rem, 6.5vw, 2rem)" : "clamp(2rem, 4.2vw, 2.75rem)",
                   fontWeight: 800,
+                  letterSpacing: "-0.035em",
                   color: "var(--tx)",
-                  letterSpacing: "-0.03em",
+                  fontFamily: "var(--fn)",
+                  lineHeight: 1.1,
+                }}
+              >
+                나만의 전문가 클론과
+                <br />
+                대화하세요
+              </h1>
+              <p
+                style={{
+                  margin: "16px auto 0",
+                  maxWidth: 440,
+                  fontSize: "var(--fs-body)",
+                  color: "var(--tx2)",
+                  lineHeight: 1.75,
                   fontFamily: "var(--fn)",
                 }}
               >
-                Featured 클론
-              </h2>
+                법률·세무·코칭 등 분야별 마스터의 지식을 클론으로. 토큰으로 대화하고, 마스터는 수익을 만듭니다.
+              </p>
+              <div
+                style={{
+                  marginTop: 26,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                  justifyContent: "center",
+                }}
+              >
+                <Bt v="pr" on={() => navigate("/signup")}>
+                  무료로 시작하기
+                </Bt>
+                <Bt v="gh" on={() => navigate("/market")}>
+                  마켓 둘러보기
+                </Bt>
+              </div>
+            </div>
+          </section>
+
+          {/* 통계 바 (단일 카드 + 구분선) */}
+          <section style={{ marginTop: isMobile ? 32 : 44 }}>
+            <Cd style={{ padding: 0, overflow: "hidden", borderColor: "var(--br2)", background: "var(--sf2)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  alignItems: "stretch",
+                }}
+              >
+                {GUEST_STATS.map((s, i) => (
+                  <div
+                    key={s.label}
+                    style={{
+                      flex: 1,
+                      padding: isMobile ? "16px 14px" : "22px 16px",
+                      textAlign: "center",
+                      borderLeft: !isMobile && i > 0 ? "1px solid var(--br)" : undefined,
+                      borderTop: isMobile && i > 0 ? "1px solid var(--br)" : undefined,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: isMobile ? "var(--fs-h2)" : "clamp(1.25rem, 2.2vw, 1.5rem)",
+                        fontWeight: 800,
+                        color: "var(--cy)",
+                        fontFamily: "var(--mo)",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {s.value}
+                    </p>
+                    <p style={{ marginTop: 6, fontSize: "var(--fs-caption)", color: "var(--tx)", fontFamily: "var(--fn)", fontWeight: 600 }}>{s.label}</p>
+                    {s.sub && (
+                      <p style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", fontFamily: "var(--mo)", marginTop: 4 }}>{s.sub}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Cd>
+          </section>
+
+          {/* Featured */}
+          <section style={{ marginTop: isMobile ? 36 : 48 }}>
+            <div style={{ marginBottom: 16, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
+                    fontWeight: 800,
+                    color: "var(--tx)",
+                    letterSpacing: "-0.03em",
+                    fontFamily: "var(--fn)",
+                  }}
+                >
+                  Featured 클론
+                </h2>
+                <p style={{ marginTop: 4, fontSize: "var(--fs-sm)", color: "var(--tx3)", fontFamily: "var(--fn)" }}>검증된 마스터 클론을 만나보세요</p>
+              </div>
               <Link to="/market" style={linkStyle()}>
-                전체 보기
+                전체 보기 →
               </Link>
             </div>
             {!supabaseConfigured ? (
-              <Cd style={{ padding: 28, textAlign: "center" }}>
-                <p style={{ color: "var(--tx2)", fontSize: "var(--fs-lead)", fontFamily: "var(--fn)" }}>
+              <Cd style={{ padding: "clamp(24px,5vw,36px)", textAlign: "center", borderStyle: "dashed" }}>
+                <p style={{ color: "var(--tx2)", fontSize: "var(--fs-body)", fontFamily: "var(--fn)", lineHeight: 1.65 }}>
                   Supabase 연결 후 마켓 클론이 표시됩니다.
                 </p>
               </Cd>
             ) : guestFeatured.length === 0 ? (
-              <EmptyPanel emoji="✨" title="아직 등록된 클론이 없어요" hint="마스터로 참여해 첫 클론을 만들어 보세요." />
-            ) : (
+              <EmptyPanel emoji="✨" title="아직 등록된 클론이 없어요" hint="마스터로 참여해 첫 클론을 만들어 보세요.">
+                <div style={{ marginTop: 18 }}>
+                  <Bt v="gh" on={() => navigate("/master-register")}>
+                    마스터 등록 알아보기
+                  </Bt>
+                </div>
+              </EmptyPanel>
+            ) : isMobile ? (
               <div
+                className="nav-scroll"
                 style={{
                   display: "flex",
-                  gap: 14,
+                  gap: 12,
                   overflowX: "auto",
-                  paddingBottom: 8,
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "var(--br2) transparent",
+                  padding: "4px 0 14px",
+                  scrollSnapType: "x mandatory",
+                  WebkitOverflowScrolling: "touch",
                 }}
               >
                 {guestFeatured.map((c) => (
-                  <FeaturedCard key={c.id} c={c} onClick={() => navigate(`/clone/${c.id}`)} />
+                  <FeaturedCard key={c.id} c={c} layout="scroll" onClick={() => navigate(`/clone/${c.id}`)} />
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {guestFeatured.map((c) => (
+                  <FeaturedCard key={c.id} c={c} layout="grid" onClick={() => navigate(`/clone/${c.id}`)} />
                 ))}
               </div>
             )}
           </section>
 
+          {/* CTA */}
           <section
             style={{
-              marginTop: 40,
+              marginTop: isMobile ? 36 : 44,
               borderRadius: "var(--r-xl)",
               border: "1px solid var(--br2)",
-              background: "linear-gradient(135deg, var(--cyd) 0%, var(--cyg) 100%)",
-              padding: isMobile ? 24 : 32,
+              background: "linear-gradient(160deg, var(--cyd) 0%, var(--sf2) 48%, var(--sf3) 100%)",
+              padding: isMobile ? 26 : 34,
               textAlign: "center",
+              boxShadow: "0 0 0 1px var(--cyg), inset 0 1px 0 var(--br2)",
             }}
           >
-            <p style={{ fontWeight: 600, color: "var(--tx)", fontSize: "var(--fs-body)", fontFamily: "var(--fn)" }}>
+            <p
+              style={{
+                fontFamily: "var(--mo)",
+                fontSize: "var(--fs-xs)",
+                letterSpacing: "0.12em",
+                color: "var(--cy)",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                marginBottom: 10,
+              }}
+            >
+              Welcome bonus
+            </p>
+            <p style={{ fontWeight: 700, color: "var(--tx)", fontSize: isMobile ? "var(--fs-body)" : "var(--fs-h3)", fontFamily: "var(--fn)", lineHeight: 1.45 }}>
               지금 가입하고 보너스 토큰을 받으세요
             </p>
-            <div style={{ marginTop: 16 }}>
+            <p style={{ marginTop: 8, fontSize: "var(--fs-sm)", color: "var(--tx2)", fontFamily: "var(--fn)" }}>무료로 시작해 첫 대화를 해 보세요.</p>
+            <div style={{ marginTop: 20, display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
               <Bt v="pr" on={() => navigate("/signup")}>
                 회원가입
+              </Bt>
+              <Bt v="gh" on={() => navigate("/login")}>
+                로그인
               </Bt>
             </div>
           </section>
@@ -465,16 +562,14 @@ export default function Home() {
   if (mode === "member") {
     return (
       <div style={{ minHeight: "100%", ...pagePad }}>
-        <div style={maxW}>
-          {/* 보유 토큰 카드 */}
-          <div
+        <div style={maxWMember}>
+          <Cd
             style={{
-              borderRadius: "var(--r-xl)",
-              padding: isMobile ? 20 : 24,
-              marginBottom: isMobile ? 28 : 36,
-              background: "linear-gradient(145deg, var(--cyd) 0%, var(--sf2) 42%, var(--sf3) 100%)",
-              border: "1px solid var(--br2)",
-              boxShadow: "0 0 0 1px var(--cyg), 0 12px 40px var(--cyg)",
+              padding: isMobile ? 20 : 26,
+              marginBottom: isMobile ? 26 : 34,
+              borderColor: "var(--br2)",
+              background: "linear-gradient(155deg, var(--cyd) 0%, var(--sf2) 45%, var(--sf3) 100%)",
+              boxShadow: "0 0 0 1px var(--cyg), 0 20px 48px var(--cyg)",
             }}
           >
             <div
@@ -483,15 +578,15 @@ export default function Home() {
                 flexWrap: "wrap",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 16,
+                gap: 18,
               }}
             >
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <p
                   style={{
                     fontFamily: "var(--mo)",
                     fontSize: "var(--fs-xs)",
-                    letterSpacing: "0.08em",
+                    letterSpacing: "0.1em",
                     color: "var(--cy)",
                     textTransform: "uppercase",
                     fontWeight: 600,
@@ -502,24 +597,25 @@ export default function Home() {
                 <p
                   style={{
                     fontFamily: "var(--mo)",
-                    fontSize: isMobile ? 30 : 36,
+                    fontSize: isMobile ? "clamp(1.75rem, 8vw, 2rem)" : "clamp(2rem, 4vw, 2.25rem)",
                     fontWeight: 800,
                     color: "var(--tx)",
-                    marginTop: 6,
-                    letterSpacing: "-0.02em",
+                    marginTop: 8,
+                    letterSpacing: "-0.03em",
+                    lineHeight: 1,
                   }}
                 >
                   {tokens.total.toLocaleString()}
-                  <span style={{ fontSize: "0.45em", fontWeight: 600, color: "var(--tx2)", marginLeft: 6 }}>T</span>
+                  <span style={{ fontSize: "0.42em", fontWeight: 600, color: "var(--tx2)", marginLeft: 8 }}>T</span>
                 </p>
                 {tokens.bonus > 0 && (
-                  <p style={{ fontSize: "var(--fs-sm)", color: "var(--am)", marginTop: 8, fontFamily: "var(--fn)" }}>
+                  <p style={{ fontSize: "var(--fs-sm)", color: "var(--gn)", marginTop: 10, fontFamily: "var(--fn)" }}>
                     보너스 {tokens.bonus.toLocaleString()} 토큰 포함
                   </p>
                 )}
                 {tokens.purchased > 0 && (
-                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", marginTop: 4, fontFamily: "var(--mo)" }}>
-                    구매 {tokens.purchased.toLocaleString()} · 합계 기준
+                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", marginTop: 6, fontFamily: "var(--mo)" }}>
+                    구매 {tokens.purchased.toLocaleString()} · 표시는 합계 기준
                   </p>
                 )}
               </div>
@@ -532,21 +628,24 @@ export default function Home() {
                 </Bt>
               </div>
             </div>
-          </div>
+          </Cd>
 
-          <section style={{ marginBottom: isMobile ? 32 : 40 }}>
-            <div style={{ marginBottom: 14, display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-              <h2
-                style={{
-                  fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
-                  fontWeight: 800,
-                  color: "var(--tx)",
-                  letterSpacing: "-0.03em",
-                  fontFamily: "var(--fn)",
-                }}
-              >
-                최근 대화
-              </h2>
+          <section style={{ marginBottom: isMobile ? 30 : 38 }}>
+            <div style={{ marginBottom: 14, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
+                    fontWeight: 800,
+                    color: "var(--tx)",
+                    letterSpacing: "-0.03em",
+                    fontFamily: "var(--fn)",
+                  }}
+                >
+                  최근 대화
+                </h2>
+                <p style={{ marginTop: 4, fontSize: "var(--fs-sm)", color: "var(--tx3)", fontFamily: "var(--fn)" }}>이어서 대화하기</p>
+              </div>
               {memberChats.length > 0 && (
                 <Link to="/my/conversations" style={{ ...linkStyle(), fontSize: "var(--fs-sm)" }}>
                   전체
@@ -603,7 +702,7 @@ export default function Home() {
                           </p>
                           <p style={{ fontSize: "var(--fs-sm)", color: "var(--tx3)", marginTop: 4, fontFamily: "var(--mo)" }}>{relTime(row.updated_at)}</p>
                         </div>
-                        <span style={{ color: "var(--cy)", fontSize: 18, flexShrink: 0 }} aria-hidden>
+                        <span style={{ color: "var(--cy)", fontSize: "var(--fs-h3)", fontFamily: "var(--mo)", flexShrink: 0, opacity: 0.85 }} aria-hidden>
                           →
                         </span>
                       </button>
@@ -615,21 +714,24 @@ export default function Home() {
           </section>
 
           <section>
-            <div style={{ marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <h2
-                style={{
-                  fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
-                  fontWeight: 800,
-                  color: "var(--tx)",
-                  letterSpacing: "-0.03em",
-                  fontFamily: "var(--fn)",
-                }}
-              >
-                추천 클론
-              </h2>
+            <div style={{ marginBottom: 14, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? "var(--fs-h3)" : "var(--fs-h2)",
+                    fontWeight: 800,
+                    color: "var(--tx)",
+                    letterSpacing: "-0.03em",
+                    fontFamily: "var(--fn)",
+                  }}
+                >
+                  추천 클론
+                </h2>
+                <p style={{ marginTop: 4, fontSize: "var(--fs-sm)", color: "var(--tx3)", fontFamily: "var(--fn)" }}>마켓에서 골라보세요</p>
+              </div>
               {recommend.length > 0 && (
                 <Link to="/market" style={linkStyle()}>
-                  더보기
+                  더보기 →
                 </Link>
               )}
             </div>
@@ -702,7 +804,7 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: "100%", ...pagePad }}>
-      <div style={maxW}>
+      <div style={maxWMember}>
         {!hasMasterProfile ? (
           <Cd style={{ padding: 28, textAlign: "center" }}>
             <p style={{ color: "var(--tx2)", fontSize: "var(--fs-body)", fontFamily: "var(--fn)", lineHeight: 1.65 }}>

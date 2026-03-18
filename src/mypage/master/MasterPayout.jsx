@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Bt from "../../common/Bt";
+import { ErrorBanner } from "../../common/UiStates";
 import { useAuth } from "../../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
 import { fetchMasterForUser, updateMaster } from "../../lib/supabaseQueries";
@@ -103,7 +104,7 @@ export default function MasterPayout() {
       <p style={{ color: "var(--tx2)", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
         정산 대금 입금 계좌입니다. 입력 정보는 암호화 저장 권장 (운영 시 정책 반영).
       </p>
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12 }}>{err}</p> : null}
+      {err ? <ErrorBanner style={{ marginBottom: 12 }}>{err}</ErrorBanner> : null}
       {msg ? <p style={{ color: "var(--cy)", fontSize: 13, marginBottom: 12 }}>{msg}</p> : null}
       <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div>

@@ -734,3 +734,18 @@ html, body {
 - ❌ 굵기 400 이하 제목
 - ❌ 모바일에서 hover만 있는 인터랙션 (터치 대응 필수)
 - ❌ 모바일에서 16px 이하 인풋 폰트 (iOS 자동 줌인 방지)
+
+---
+
+## 13. 공통 UI 상태 (`src/common/UiStates.jsx`)
+
+| 컴포넌트 | 용도 |
+|----------|------|
+| `ErrorBanner` | 폼/페이지 에러 — `var(--err-surface)`, `var(--rd)` |
+| `SuccessBanner` | 성공 메시지 — `var(--cyd)`, `var(--cy)` |
+| `LoadingBlock` | 목록·페이지 로딩 — `LoadingSpinner` + 캡션 |
+| `EmptyState` | 빈 목록 — 점선 카드 + 제목·힌트 + CTA 슬롯 |
+
+전역: **`--on-cy`** (시안 버튼 위 텍스트), **`--on-rd`** (위험 버튼 위 텍스트). 하드코딩 `#f66` / `#fff` 대신 `var(--rd)` / `var(--err-*)` 사용.
+
+**브레이크포인트:** `useWindowSize().isMobile` — width **&lt; 768** 과 `globalCss` `@media (max-width:767px)` 일치.

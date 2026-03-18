@@ -2,27 +2,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 
 import Bt from "../common/Bt";
+import Cd from "../common/Cd";
+import LoadingSpinner from "../common/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
+import { useWindowSize } from "../hooks/useWindowSize";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 import { fetchMyUserRow, updateMyUserRow } from "../lib/supabaseQueries";
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 const AVATAR_BUCKET = "avatars";
 
-const field = {
-  width: "100%",
-  padding: "10px 12px",
-  border: "1px solid var(--br)",
-  borderRadius: 8,
-  background: "var(--sf2)",
-  color: "var(--tx)",
-  fontSize: 14,
-  outline: "none",
-  fontFamily: "var(--fn)",
-};
-
 export default function MemberProfile() {
   const { user, supabaseConfigured } = useAuth();
+  const { isMobile } = useWindowSize();
   const ctx = useOutletContext() || {};
   const refreshHeader = ctx.refreshHeader || (() => {});
   const [loading, setLoading] = useState(true);
@@ -35,6 +27,18 @@ export default function MemberProfile() {
   const [avatarBust, setAvatarBust] = useState(0);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
+
+  const field = {
+    width: "100%",
+    padding: "10px 12px",
+    border: "1px solid var(--br)",
+    borderRadius: "var(--r-md)",
+    background: "var(--sf2)",
+    color: "var(--tx)",
+    fontSize: isMobile ? "var(--fs-input-mobile)" : "var(--fs-body)",
+    outline: "none",
+    fontFamily: "var(--fn)",
+  };
 
   const load = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
@@ -149,83 +153,122 @@ export default function MemberProfile() {
   };
 
   if (!supabaseConfigured) {
-    return <p style={{ color: "var(--tx2)" }}>Supabase 설정 후 이용할 수 있습니다.</p>;
+    return (
+      <Cd style={{ padding: "clamp(24px,5vw,36px)", textAlign: "center", borderStyle: "dashed" }}>
+        <p style={{ color: "var(--tx2)", fontSize: "var(--fs-body)", fontFamily: "var(--fn)" }}>Supabase 설정 후 이용할 수 있습니다.</p>
+      </Cd>
+    );
   }
 
   return (
     <div>
-      <p style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 8 }}>PROFILE</p>
-      <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>프로필</h2>
-      <p style={{ color: "var(--tx2)", fontSize: 13, marginBottom: 20 }}>
-        프로필 사진은 Supabase Storage에 올리거나, 아래에 URL을 직접 넣을 수 있어요.{" "}
-        <Link to="/my/settings" style={{ color: "var(--cy)" }}>
+      <p
+        style={{
+          fontSize: "var(--fs-xs)",
+          color: "var(--cy)",
+          fontFamily: "var(--mo)",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+          marginBottom: 8,
+        }}
+      >
+        Profile
+      </p>
+      <h2 style={{ fontSize: "var(--fs-h1-mobile)", fontWeight: 800, marginBottom: 8, color: "var(--tx)", fontFamily: "var(--fn)", letterSpacing: "-0.02em" }}>
+        프로필
+      </h2>
+      <p style={{ color: "var(--tx2)", fontSize: "var(--fs-caption)", marginBottom: 22, lineHeight: 1.65, fontFamily: "var(--fn)", maxWidth: 520 }}>
+        사진은 Storage 업로드 또는 URL로 넣을 수 있어요.{" "}
+        <Link to="/my/settings" style={{ color: "var(--cy)", fontWeight: 600 }}>
           알림·계정 설정
         </Link>
       </p>
-      {err ? <p style={{ color: "#f66", fontSize: 13, marginBottom: 12 }}>{err}</p> : null}
-      {msg ? <p style={{ color: "var(--cy)", fontSize: 13, marginBottom: 12 }}>{msg}</p> : null}
+
+      {err ? (
+        <Cd style={{ padding: "12px 16px", marginBottom: 16, borderColor: "var(--err-border)", background: "var(--err-surface)" }}>
+          <p style={{ color: "var(--rd)", fontSize: "var(--fs-caption)", fontFamily: "var(--fn)" }}>{err}</p>
+        </Cd>
+      ) : null}
+      {msg ? (
+        <Cd style={{ padding: "12px 16px", marginBottom: 16, borderColor: "var(--br2)", background: "var(--cyd)" }}>
+          <p style={{ color: "var(--cy)", fontSize: "var(--fs-caption)", fontFamily: "var(--fn)", fontWeight: 600 }}>{msg}</p>
+        </Cd>
+      ) : null}
+
       {loading ? (
-        <p style={{ color: "var(--tx3)" }}>불러오는 중…</p>
+        <Cd style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+          <LoadingSpinner size={22} />
+          <p style={{ color: "var(--tx3)", fontSize: "var(--fs-caption)", fontFamily: "var(--mo)" }}>불러오는 중…</p>
+        </Cd>
       ) : (
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 520 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 11, color: "var(--tx3)", marginBottom: 8 }}>프로필 사진</label>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  border: "2px solid var(--br2)",
-                  background: "var(--sf2)",
-                  flexShrink: 0,
-                }}
-              >
-                {avatarUrl ? (
-                  <img
-                    src={avatarBust ? `${avatarUrl}${avatarUrl.includes("?") ? "&" : "?"}v=${avatarBust}` : avatarUrl}
-                    alt=""
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--tx3)", fontSize: 12 }}>
-                    없음
-                  </div>
-                )}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={onAvatarFile} />
-                <Bt v="pr" type="button" dis={uploading} on={onPickAvatar}>
-                  {uploading ? "업로드 중…" : "사진 올리기"}
-                </Bt>
-                <span style={{ fontSize: 11, color: "var(--tx3)", maxWidth: 280, lineHeight: 1.4 }}>
-                  JPEG·PNG·WebP·GIF, 최대 2MB. 버킷 <code style={{ fontSize: 10 }}>avatars</code> 필요.
-                </span>
+        <Cd style={{ padding: "clamp(20px,4vw,28px)", maxWidth: 540, borderColor: "var(--br2)" }}>
+          <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div>
+              <label style={{ display: "block", fontSize: "var(--fs-sm)", color: "var(--tx3)", marginBottom: 10, fontFamily: "var(--mo)" }}>프로필 사진</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    border: "2px solid var(--br2)",
+                    background: "var(--sf3)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarBust ? `${avatarUrl}${avatarUrl.includes("?") ? "&" : "?"}v=${avatarBust}` : avatarUrl}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--tx3)",
+                        fontSize: "var(--fs-caption)",
+                        fontFamily: "var(--fn)",
+                      }}
+                    >
+                      없음
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={onAvatarFile} />
+                  <Bt v="pr" type="button" dis={uploading} on={onPickAvatar}>
+                    {uploading ? "업로드 중…" : "사진 올리기"}
+                  </Bt>
+                  <span style={{ fontSize: "var(--fs-xs)", color: "var(--tx3)", maxWidth: 280, lineHeight: 1.5, fontFamily: "var(--fn)" }}>
+                    JPEG·PNG·WebP·GIF, 최대 2MB. 버킷 <code style={{ fontSize: 10, fontFamily: "var(--mo)" }}>avatars</code>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 11, color: "var(--tx3)", marginBottom: 6 }}>이미지 URL (선택)</label>
-            <input
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://… (외부 URL)"
-              style={field}
-            />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 11, color: "var(--tx3)", marginBottom: 6 }}>닉네임</label>
-            <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="표시 이름" style={field} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 11, color: "var(--tx3)", marginBottom: 6 }}>관심사 (쉼표)</label>
-            <input value={interestsStr} onChange={(e) => setInterestsStr(e.target.value)} placeholder="영업, 마케팅" style={field} />
-          </div>
-          <Bt v="pr" type="submit" dis={saving}>
-            {saving ? "저장 중…" : "저장"}
-          </Bt>
-        </form>
+            <div>
+              <label style={{ display: "block", fontSize: "var(--fs-sm)", color: "var(--tx3)", marginBottom: 8, fontFamily: "var(--mo)" }}>이미지 URL (선택)</label>
+              <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://…" style={field} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "var(--fs-sm)", color: "var(--tx3)", marginBottom: 8, fontFamily: "var(--mo)" }}>닉네임</label>
+              <input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="표시 이름" style={field} />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "var(--fs-sm)", color: "var(--tx3)", marginBottom: 8, fontFamily: "var(--mo)" }}>관심사 (쉼표)</label>
+              <input value={interestsStr} onChange={(e) => setInterestsStr(e.target.value)} placeholder="영업, 마케팅" style={field} />
+            </div>
+            <Bt v="pr" type="submit" dis={saving}>
+              {saving ? "저장 중…" : "저장"}
+            </Bt>
+          </form>
+        </Cd>
       )}
     </div>
   );

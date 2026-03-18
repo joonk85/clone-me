@@ -64,6 +64,8 @@ export const GLOBAL_CSS = `
   --nav-h-mobile:48px;
   --touch-min:44px;
   --z-nav:100;
+  --z-nav-tabbar:98;
+  --nav-tabbar-h:54px;
   --z-nav-backdrop:199;
   --z-nav-drawer:200;
 
@@ -89,8 +91,9 @@ export const GLOBAL_CSS = `
   --tg-go-bg:rgba(255,200,50,0.12);
   --tg-pu-bg:rgba(183,148,255,0.1);
 
-  /* ── Text on primary button ── */
+  /* ── Text on primary / danger button ── */
   --on-cy:#000;
+  --on-rd:#fff;
 }
 
 @media (max-width:767px){
