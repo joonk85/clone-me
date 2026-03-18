@@ -36,8 +36,8 @@ Frontend:   React 18 + Vite 4 / React Router v6
 Deploy:     Vercel (MVP) → AWS (Live)
 AI 채팅:    MVP: Anthropic Claude (claude-sonnet-4-6) 전용
             Live(AWS): Claude + Google Gemini 병용 (채팅 답변 생성)
-            ※ 텍스트 추출(PDF/DOCX), 임베딩은 항상 Claude API
-Embedding:  Anthropic voyage-3 (MVP/Live 공통)
+            ※ 텍스트 추출·임베딩 모두 ANTHROPIC_API_KEY (Claude 문서 API + voyage-3 embeddings)
+Embedding:  Anthropic SDK `embeddings.create({ model: 'voyage-3', input })` → vector 차원은 DB와 일치 필요 (`/api/process-file`)
 DB:         Supabase (PostgreSQL + pgvector)
   URL:      https://rhsbpfjscobjdrzqymjx.supabase.co
 Storage:    Supabase Storage (원본 파일 영구 보관)
@@ -167,14 +167,11 @@ E. 고정 답변        — AI보다 우선 적용
 고정 답변 / 클론 테스트(자유형) / 버전 히스토리
 유사도 게이지 / 보안 설정 / 마케팅 링크 / 리포트
 
-### ❌ 미구현 (Production 필요)
-인증(로그인/회원가입/이메일인증) / DB 연동 (현재 하드코딩)
-RAG 파이프라인(청크/임베딩/검색/출처표시)
-마이페이지 전체 / 토큰 구매+이용내역
-파일 업로드(Supabase Storage) / 마스터 등록 플로우
-설정 페이지 / 클론 테스트 10개 시나리오
-자료별 참조 현황 / 모바일 완전 대응
-보너스 토큰 만료 CRON
+### Phase 2.5 완료 (RAG·대시보드 인사이트)
+`/api/process-file` · `/api/chat`(RAG·고정답·`file_reference_stats`) · 채팅 출처·마케팅 링크 · 클론 테스트 10시나리오 · **인사이트「자료별 참조 현황」** (`CloneDash`)
+
+### ❌ 남은 큰 덩어리
+Phase 3 실결제 / Phase 4 어드민·리포트 다운로드 등 · 일부 화면 Mock 데이터 · 모바일 추가 폴리싱
 
 ---
 

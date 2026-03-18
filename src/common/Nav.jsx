@@ -2,33 +2,23 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useWindowSize } from "../hooks/useWindowSize";
-import { useAppState } from "../contexts/AppStateContext";
 
 export default function Nav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { role, setRole } = useAppState();
   const { isMobile } = useWindowSize();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const cr = [
-    { path: "/", l: "홈" },
-    { path: "/dashboard/create", l: "클론 만들기" },
-    { path: "/dashboard", l: "내 클론" },
-  ];
-  const by = [
+  const items = [
     { path: "/", l: "홈" },
     { path: "/market", l: "마켓" },
     { path: "/my", l: "마이" },
   ];
-  const items = role === "creator" ? cr : by;
-  const activePath = pathname.startsWith("/dashboard")
-    ? pathname === "/dashboard/create"
-      ? "/dashboard/create"
-      : "/dashboard"
-    : pathname.startsWith("/my")
-      ? "/my"
-      : pathname;
+  const activePath = pathname.startsWith("/my")
+    ? "/my"
+    : pathname.startsWith("/market")
+      ? "/market"
+      : "/";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -48,11 +38,6 @@ export default function Nav() {
   const handleTab = (path) => () => {
     setMenuOpen(false);
     navigate(path);
-  };
-  const handleRoleToggle = () => {
-    setMenuOpen(false);
-    setRole((r) => (r === "creator" ? "buyer" : "creator"));
-    navigate("/");
   };
 
   const tabBtn = (path, l, isActive) => (
@@ -77,8 +62,6 @@ export default function Nav() {
       {l}
     </button>
   );
-
-  const roleLabel = role === "creator" ? "구매자로" : "강사로";
 
   if (isMobile) {
     return (
@@ -123,7 +106,9 @@ export default function Nav() {
             >
               <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)" }}>c</span>
             </div>
-            <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em" }}>clone.me</span>
+            <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)" }}>
+              clone.me
+            </span>
           </div>
           <button
             type="button"
@@ -179,11 +164,19 @@ export default function Nav() {
                 display: "flex",
                 flexDirection: "column",
                 gap: 6,
-                boxShadow: "-8px 0 32px rgba(0,0,0,0.4)",
+                boxShadow: "-12px 0 40px var(--overlay-dim)",
                 animation: "fu 0.2s ease",
               }}
             >
-              <div style={{ fontSize: "var(--fs-xs)", color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 8 }}>
+              <div
+                style={{
+                  fontSize: "var(--fs-xs)",
+                  color: "var(--cy)",
+                  fontFamily: "var(--mo)",
+                  letterSpacing: "0.08em",
+                  marginBottom: 8,
+                }}
+              >
                 MENU
               </div>
               {items.map(({ path, l }) => (
@@ -208,26 +201,6 @@ export default function Nav() {
                   {l}
                 </button>
               ))}
-              <div style={{ marginTop: "auto", paddingTop: 20, borderTop: "1px solid var(--br)" }}>
-                <button
-                  type="button"
-                  onClick={handleRoleToggle}
-                  style={{
-                    width: "100%",
-                    minHeight: "var(--touch-min)",
-                    borderRadius: "var(--r-md)",
-                    border: "1px solid var(--br2)",
-                    background: "var(--sf2)",
-                    color: "var(--cy)",
-                    fontSize: "var(--fs-caption)",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "var(--mo)",
-                  }}
-                >
-                  {roleLabel}
-                </button>
-              </div>
             </nav>
           </>
         )}
@@ -250,6 +223,7 @@ export default function Nav() {
         justifyContent: "space-between",
         padding: "0 var(--page-pad-x)",
         flexShrink: 0,
+        gap: 12,
       }}
     >
       <div
@@ -257,7 +231,7 @@ export default function Nav() {
         onKeyDown={(e) => e.key === "Enter" && handleLogo()}
         role="button"
         tabIndex={0}
-        style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}
+        style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", flexShrink: 0 }}
       >
         <div
           style={{
@@ -273,29 +247,25 @@ export default function Nav() {
         >
           <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)" }}>c</span>
         </div>
-        <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em" }}>clone.me</span>
+        <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)" }}>
+          clone.me
+        </span>
       </div>
-      <div className="nav-scroll" style={{ display: "flex", gap: 4, overflowX: "auto", maxWidth: "min(52vw, 420px)", alignItems: "center" }}>
-        {items.map(({ path, l }) => tabBtn(path, l, activePath === path))}
-      </div>
-      <button
-        type="button"
-        onClick={handleRoleToggle}
+      <div
+        className="nav-scroll"
         style={{
-          minHeight: 36,
-          padding: "6px 12px",
-          borderRadius: "var(--r-md)",
-          border: "1px solid var(--br2)",
-          background: "transparent",
-          fontSize: "var(--fs-sm)",
-          cursor: "pointer",
-          fontFamily: "var(--mo)",
-          color: "var(--cy)",
-          flexShrink: 0,
+          display: "flex",
+          gap: 4,
+          overflowX: "auto",
+          flex: 1,
+          justifyContent: "center",
+          maxWidth: 420,
+          alignItems: "center",
         }}
       >
-        {roleLabel}
-      </button>
+        {items.map(({ path, l }) => tabBtn(path, l, activePath === path))}
+      </div>
+      <div style={{ width: 24, flexShrink: 0 }} aria-hidden />
     </header>
   );
 }

@@ -103,7 +103,7 @@ CREATE TABLE public.clone_chunks (
   file_id uuid REFERENCES public.clone_files ON DELETE CASCADE,
   chunk_index int NOT NULL,
   content text NOT NULL,
-  embedding vector(1536),
+  embedding vector(1024),
   file_name text,
   file_type text,
   page_number int,
@@ -120,7 +120,7 @@ CREATE TABLE public.clone_chunks (
 CREATE INDEX clone_chunks_embedding_hnsw ON public.clone_chunks
   USING hnsw (embedding vector_cosine_ops);
 
--- 임베딩 차원: voyage 등 모델에 맞게 1536이 아니면 clone_chunks.embedding 타입을 수정해야 함
+-- 임베딩 차원: voyage-3(Anthropic) 출력 차원에 맞출 것 — 기본 1024 마이그레이션 참고 (/api/process-file)
 
 CREATE TABLE public.clone_version_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

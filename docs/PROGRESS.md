@@ -33,13 +33,18 @@
 
 ---
 
-## Phase 2.5 미완료 ❌
+## Phase 2.5 완료 ✅
 
-- `/api/process-file` (RAG 파이프라인)
-- `/api/chat` (pgvector 검색 + 출처)
-- 채팅 UI 출처 표시
-- 클론 테스트 10가지 시나리오
-- 자료별 참조 현황
+> 배포 시 SQL 미적용이면 `match_clone_chunks` / `marketing_links` RLS 등 별도 적용.
+
+- ~~`/api/process-file`~~ ✅ — base64 body · Claude PDF/DOCX · SRT/TXT · 청크 500/50 → `clone_chunks` · `quality_score` 재계산. 호출 시 `Authorization: Bearer <access_token>` · Vercel `ANTHROPIC_API_KEY` · `SUPABASE_SERVICE_ROLE_KEY`
+  - **embedding 차원:** `vector(1536)` → **`vector(1024)`** 로 변경됨 — Supabase SQL `20260318150000_clone_chunks_embedding_voyage1024.sql` 적용 후 기존 청크 삭제 → 자료 **재처리** 필요
+  - **임베딩 모델:** **`voyage-3-large`**, **`ANTHROPIC_API_KEY`** 로 호출 (Anthropic SDK / 동일 키)
+  - **`VOYAGE_API_KEY` 불필요** (Vercel·로컬에서 삭제)
+- ~~`/api/chat`~~ ✅ — `Authorization: Bearer` · fixed_answers 키워드 · 질문 임베딩(voyage·`ANTHROPIC_API_KEY`) · `match_clone_chunks` TOP 5 · Claude 답변 · `message_sources` · `file_reference_stats` · `{ answer, conversationId, sources }`. **SQL:** `20260319120000_match_clone_chunks.sql` 적용 필요
+- ~~채팅 UI 출처 표시~~ ✅ — PDF/DOCX(파일·페이지·섹션), SRT(파일·타임스탬프), 고정답변 뱃지, `marketing_links` 키워드·빈도 기반 링크 카드. **SQL:** `20260319130000_marketing_links_chat_read.sql` (멤버가 마케팅 링크 SELECT)
+- ~~클론 테스트 10가지 시나리오~~ ✅ — `CloneDash` 테스트 패널 · `/api/chat` 연동(로그인+UUID 클론) · 로컬 고정답변 폴백 · 출처·자가평가
+- ~~자료별 참조 현황~~ ✅ — 인사이트 탭 `file_reference_stats` + `clone_files` 보강 조회 · 월별(이번 달 포함)/전체 합산 · 파일별 바 비교
 
 ---
 

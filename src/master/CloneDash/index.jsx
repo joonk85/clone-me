@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Av from "../../common/Av";
 import Bt from "../../common/Bt";
@@ -7,6 +7,10 @@ import Pb from "../../common/Pb";
 import Sw from "../../common/Sw";
 import Tg from "../../common/Tg";
 import { ANALYTICS, CONV_HISTORY, FEEDBACKS, REPORT_DATA, VER_FILES } from "../../lib/mockData";
+import { buildCloneTestScenarios } from "../cloneTestScenarios";
+import { getSupabaseBrowserClient } from "../../lib/supabase";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * 마스터 클론 대시보드 — 탭: 개요 / 클론 관리 / 인사이트 / 운영.
@@ -23,7 +27,16 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
   const [testMsgs,setTestMsgs]=useState([]);
   const [testInp,setTestInp]=useState("");
   const [testLoad,setTestLoad]=useState(false);
+  const [testConvId,setTestConvId]=useState(null);
+  const [scenarioMarks,setScenarioMarks]=useState({});
+  const [scenarioPanelOpen,setScenarioPanelOpen]=useState(true);
+  const [fileRefRows,setFileRefRows]=useState(null);
+  const [fileRefLoading,setFileRefLoading]=useState(false);
+  const [fileRefErr,setFileRefErr]=useState(null);
+  const [refPeriodFilter,setRefPeriodFilter]=useState("all");
+  const [fileRefTick,setFileRefTick]=useState(0);
   const testRef=useRef(null);
+  const testScenarios = buildCloneTestScenarios({ ...clone, tags: clone.tags || [] });
   // Fixed answers
   const [fixedQA,setFixedQA]=useState([
     {id:"fq1",q:"이 클론이 뭘 잘 알아요?",a:"저는 B2B 영업 전략, 콜드아웃리치, 협상, 엔터프라이즈 영업을 전문으로 합니다. 15년간 현장에서 쌓은 실전 지식을 기반으로 답변드립니다."},
@@ -102,27 +115,98 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
 
   const updateClone=(fn)=>setClone(prev=>({...prev,...fn(prev)}));
 
-  const testSend=async()=>{
-    if(!testInp.trim()||testLoad)return;
-    const m=testInp.trim();setTestInp("");
-    // Check fixed answers first
-    const fixed=fixedQA.find(f=>m.includes(f.q.slice(0,10)));
-    const newMsgs=[...testMsgs,{r:"u",t:m}];
-    setTestMsgs(newMsgs);setTestLoad(true);
-    if(fixed){
-      setTimeout(()=>{setTestMsgs(p=>[...p,{r:"a",t:fixed.a,src:"고정 답변"}]);setTestLoad(false);},600);
+  useEffect(()=>{
+    if(tab!=="insight"||!UUID_RE.test(String(clone.id||""))){
       return;
     }
-    try{
-      const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,
-          system:`${clone.ctx||"You are an AI clone. Speak Korean."}\n\nThis is a TEST by the instructor. Respond as the clone would. Be honest about limitations.`,
-          messages:[...newMsgs.slice(-6).map(x=>({role:x.r==="u"?"user":"assistant",content:x.t})),{role:"user",content:m}]
-        })});
-      const d=await res.json();
-      setTestMsgs(p=>[...p,{r:"a",t:d.content?.find(b=>b.type==="text")?.text||"오류가 발생했습니다.",src:"AI 생성"}]);
-    }catch{setTestMsgs(p=>[...p,{r:"a",t:"연결 오류입니다.",src:""}]);}
-    finally{setTestLoad(false);}
+    let cancelled=false;
+    (async()=>{
+      setFileRefLoading(true);
+      setFileRefErr(null);
+      try{
+        const sb=getSupabaseBrowserClient();
+        const {data:rows,error}=await sb.from("file_reference_stats")
+          .select("file_id,period,reference_count,updated_at")
+          .eq("clone_id",clone.id)
+          .order("reference_count",{ascending:false});
+        if(cancelled)return;
+        if(error)throw error;
+        const list=rows||[];
+        const fids=[...new Set(list.map(r=>r.file_id).filter(Boolean))];
+        let fileMap={};
+        if(fids.length){
+          const {data:files,error:fe}=await sb.from("clone_files").select("id,name,type").in("id",fids);
+          if(!fe&&files)for(const f of files)fileMap[f.id]=f;
+        }
+        if(cancelled)return;
+        setFileRefRows(list.map(r=>({...r,clone_files:r.file_id?fileMap[r.file_id]??null:null})));
+      }catch(e){
+        if(!cancelled)setFileRefErr(e?.message||"불러오기 실패");
+        if(!cancelled)setFileRefRows([]);
+      }finally{
+        if(!cancelled)setFileRefLoading(false);
+      }
+    })();
+    return()=>{cancelled=true;};
+  },[tab,clone.id,fileRefTick]);
+
+  const fileRefCurMonth=new Date().toISOString().slice(0,7);
+  const fileRefPeriods=[...new Set([fileRefCurMonth,...(fileRefRows||[]).map(r=>r.period)])].sort().reverse();
+  const fileRefDisplay=(()=>{
+    const rows=fileRefRows||[];
+    if(refPeriodFilter==="all"){
+      const m=new Map();
+      for(const r of rows){
+        const fid=r.file_id;
+        const cf=r.clone_files;
+        const name=cf?.name||"(파일)";
+        const type=cf?.type||"";
+        const cur=m.get(fid)||{file_id:fid,name,type,count:0};
+        cur.count+=(r.reference_count||0);
+        m.set(fid,cur);
+      }
+      return[...m.values()].sort((a,b)=>b.count-a.count);
+    }
+    return rows
+      .filter(r=>r.period===refPeriodFilter)
+      .map(r=>({
+        file_id:r.file_id,
+        name:r.clone_files?.name||"(파일)",
+        type:r.clone_files?.type||"",
+        count:r.reference_count||0,
+        updated_at:r.updated_at,
+      }))
+      .sort((a,b)=>b.count-a.count);
+  })();
+
+  const testSend=async(maybePreset)=>{
+    const preset=typeof maybePreset==="string"?maybePreset:null;
+    const m=(preset!=null?preset:testInp).trim();
+    if(!m||testLoad)return;
+    if(preset==null)setTestInp("");
+    const prior=testMsgs.filter(x=>x.r==="u"||x.r==="a");
+    const apiMsgs=[...prior.map(x=>({role:x.r==="u"?"user":"assistant",content:x.t})),{role:"user",content:m}];
+    setTestMsgs(p=>[...p,{r:"u",t:m}]);
+    setTestLoad(true);
+    const isUuid=UUID_RE.test(String(clone.id||""));
+    let sb; try{sb=getSupabaseBrowserClient();}catch{sb=null;}
+    let token=null;
+    if(sb){const {data}=await sb.auth.getSession();token=data?.session?.access_token;}
+    if(isUuid&&token){
+      try{
+        const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},
+          body:JSON.stringify({cloneId:clone.id,conversationId:testConvId,messages:apiMsgs})});
+        const d=await res.json();
+        if(d.conversationId)setTestConvId(d.conversationId);
+        if(!res.ok){setTestMsgs(p=>[...p,{r:"a",t:d.error||"요청 실패",src:"오류"}]);}
+        else{setTestMsgs(p=>[...p,{r:"a",t:d.answer||"",src:d.fromFixedAnswer?"고정 답변":d.usedRag?"RAG+Claude":"Claude",sources:d.sources||[]}]);}
+      }catch{setTestMsgs(p=>[...p,{r:"a",t:"연결 오류입니다.",src:""}]);}
+    }else{
+      const fixed=fixedQA.find(f=>m.includes(f.q.slice(0,Math.min(12,f.q.length))));
+      if(fixed){setTimeout(()=>{setTestMsgs(p=>[...p,{r:"a",t:fixed.a,src:"고정 답변(로컬)"}]);setTestLoad(false);},450);return;}
+      setTestMsgs(p=>[...p,{r:"a",t:isUuid?"로그인하면 실제 RAG·고정답변과 동일하게 테스트됩니다.":"Supabase에 저장된 클론(대시보드에서 생성)에서 테스트해 주세요.",src:"안내"}]);
+    }
+    setTestLoad(false);
   };
 
   return(
@@ -332,13 +416,49 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 <div style={{fontSize:12,fontWeight:700}}>출시 전 직접 테스트해보세요</div>
                 <div style={{fontSize:11,color:"var(--tx2)",marginTop:1}}>구독자 입장에서 질문해보고 답변 품질을 확인합니다</div>
               </div>
-              <Bt v={testOpen?"gh":"pr"} sz="sm" on={()=>{setTestOpen(v=>!v);if(!testOpen)setTestMsgs([{r:"a",t:clone.welcomeMsg||`안녕하세요! ${clone.name}의 AI 클론입니다. 테스트 모드입니다.`,src:""}]);}}>
+              <Bt v={testOpen?"gh":"pr"} sz="sm" on={()=>{setTestOpen(v=>!v);if(!testOpen){setTestConvId(null);setTestMsgs([{r:"a",t:clone.welcomeMsg||`안녕하세요! ${clone.name}의 AI 클론입니다. (테스트)`,src:""}]);}}}>
                 {testOpen?"닫기":"테스트 시작"}
               </Bt>
             </div>
             {testOpen&&<div style={{animation:"fu 0.25s ease"}}>
               <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:8,padding:"7px 11px",marginBottom:10,fontSize:11,color:"var(--am)",display:"flex",gap:6,alignItems:"center"}}>
-                <span>⚡</span><span>테스트 모드 — 구독자에게는 보이지 않습니다. 실제 API를 사용합니다.</span>
+                <span>⚡</span><span>테스트 모드 — 로그인 + DB 클론이면 /api/chat(RAG)과 동일합니다.</span>
+              </div>
+              <div style={{marginBottom:12,border:"1px solid var(--br2)",borderRadius:10,overflow:"hidden",background:"var(--sf2)"}}>
+                <button type="button" onClick={()=>setScenarioPanelOpen(v=>!v)} style={{width:"100%",padding:"10px 12px",border:"none",background:"var(--cyd)",color:"var(--cy)",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--fn)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span>📋 구조화 테스트 10종 (PRD)</span>
+                  <span>{scenarioPanelOpen?"▲":"▼"}</span>
+                </button>
+                {scenarioPanelOpen&&<div style={{padding:"10px 12px 12px",maxHeight:320,overflowY:"auto"}}>
+                  {testScenarios.map((sc)=>(
+                    <div key={sc.id} style={{marginBottom:10,paddingBottom:10,borderBottom:"1px solid var(--br)"}}>
+                      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:11,fontWeight:800,color:"var(--tx)",marginBottom:4}}>{sc.id}. {sc.title}</div>
+                          <div style={{fontSize:10,color:"var(--tx2)",lineHeight:1.5,marginBottom:6}}>기대: {sc.hint}</div>
+                          {!sc.multi&&<div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",padding:"6px 8px",background:"var(--sf)",borderRadius:6,border:"1px solid var(--br)",lineHeight:1.45}}>{sc.question}</div>}
+                          {sc.multi&&sc.steps?.map((st,i)=><div key={i} style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",padding:"5px 8px",background:"var(--sf)",borderRadius:6,marginBottom:4,border:"1px solid var(--br)"}}>{i+1}) {st}</div>)}
+                        </div>
+                        <div style={{display:"flex",flexDirection:"column",gap:4,flexShrink:0}}>
+                          {!sc.multi&&<>
+                            <Bt v="gh" sz="sm" on={()=>setTestInp(sc.question)}>입력란에 넣기</Bt>
+                            <Bt v="pr" sz="sm" dis={testLoad} on={()=>testSend(sc.question)}>바로 전송</Bt>
+                          </>}
+                          {sc.multi&&sc.steps?.map((st,i)=><Bt key={i} v="pr" sz="sm" dis={testLoad} on={()=>testSend(st)} style={{fontSize:10}}>{i+1}번 전송</Bt>)}
+                        </div>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8}}>
+                        <span style={{fontSize:9,color:"var(--tx3)",fontFamily:"var(--mo)"}}>자가평가</span>
+                        {["ok","warn","bad"].map((k)=>(
+                          <button key={k} type="button" onClick={()=>setScenarioMarks(p=>({...p,[sc.id]:k}))} style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${scenarioMarks[sc.id]===k?"var(--cy)":"var(--br)"}`,background:scenarioMarks[sc.id]===k?"var(--cyd)":"transparent",fontSize:10,cursor:"pointer",fontFamily:"var(--mo)",color:scenarioMarks[sc.id]===k?"var(--cy)":"var(--tx3)"}}>
+                            {k==="ok"?"✅":k==="warn"?"⚠️":"❌"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{fontSize:10,color:"var(--tx3)",marginTop:6,lineHeight:1.5}}>※ 자가평가는 브라우저에만 저장됩니다. 실제 리포트·점수는 Phase 4 예정.</div>
+                </div>}
               </div>
               {/* Mini chat */}
               <div style={{background:"var(--sf2)",borderRadius:10,border:"1px solid var(--br)",overflow:"hidden"}}>
@@ -347,11 +467,19 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                     <div key={i} style={{display:"flex",gap:7,flexDirection:m.r==="u"?"row-reverse":"row"}}>
                       {m.r==="a"&&<Av char={clone.av} color={clone.color} size={22}/>}
                       <div style={{maxWidth:"78%"}}>
-                        <div style={{padding:"8px 11px",borderRadius:10,background:m.r==="u"?"var(--cyd)":"var(--sf)",border:m.r==="u"?"1px solid var(--br2)":"1px solid var(--br)",fontSize:12,lineHeight:1.6,color:"var(--tx)",borderTopRightRadius:m.r==="u"?2:10,borderTopLeftRadius:m.r==="a"?2:10}}>
+                        <div style={{padding:"8px 11px",borderRadius:10,background:m.r==="u"?"var(--cyd)":"var(--sf)",border:m.r==="u"?"1px solid var(--br2)":"1px solid var(--br)",fontSize:12,lineHeight:1.6,color:"var(--tx)",borderTopRightRadius:m.r==="u"?2:10,borderTopLeftRadius:m.r==="a"?2:10,whiteSpace:"pre-wrap"}}>
                           {m.t}
                         </div>
-                        {m.src&&<div style={{fontSize:9,color:m.src==="고정 답변"?"var(--go)":"var(--tx3)",fontFamily:"var(--mo)",marginTop:2,paddingLeft:4}}>
-                          {m.src==="고정 답변"?"📌 고정 답변":"🤖 AI 생성"}
+                        {m.src&&<div style={{fontSize:9,color:m.src?.includes("고정")?"var(--go)":m.src==="RAG+Claude"?"var(--cy)":"var(--tx3)",fontFamily:"var(--mo)",marginTop:2,paddingLeft:4}}>
+                          {m.src?.includes("고정")?"📌 고정 답변":m.src==="RAG+Claude"?"📚 RAG+Claude":m.src==="Claude"?"🤖 Claude":m.src||""}
+                        </div>}
+                        {m.r==="a"&&m.sources?.length>0&&<div style={{marginTop:6,padding:"6px 8px",borderRadius:6,background:"var(--cyg)",border:"1px solid var(--br2)",fontSize:9,color:"var(--tx2)",fontFamily:"var(--mo)",lineHeight:1.45}}>
+                          <div style={{color:"var(--cy)",marginBottom:4}}>출처</div>
+                          {m.sources.map((s,j)=>{
+                            const ft=(s.file_type||"").toUpperCase();
+                            const line=ft==="SRT"?`📺 ${s.file_name||""}${s.timestamp_start?` · ${s.timestamp_start}`:""}`:`📄 ${s.file_name||""}${s.page_number!=null?` · ${s.page_number}p`:""}${s.section_title?` · ${s.section_title}`:""}`;
+                            return <div key={s.chunk_id||j}>{line}</div>;
+                          })}
                         </div>}
                       </div>
                     </div>
@@ -360,11 +488,11 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 </div>
                 <div style={{borderTop:"1px solid var(--br)",padding:"8px 10px",display:"flex",gap:7,background:"var(--sf)"}}>
                   <input value={testInp} onChange={e=>setTestInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&testSend()} placeholder="구독자 입장에서 질문해보세요..." style={{flex:1,padding:"7px 10px",border:"1px solid var(--br)",borderRadius:8,background:"var(--sf2)",color:"var(--tx)",fontSize:12,outline:"none",fontFamily:"var(--fn)"}}/>
-                  <button type="button" onClick={testSend} disabled={!testInp.trim()||testLoad} style={{padding:"7px 14px",borderRadius:8,border:"none",background:clone.color||"var(--cy)",color:"#000",fontSize:11,fontWeight:700,cursor:testInp.trim()&&!testLoad?"pointer":"not-allowed",opacity:testInp.trim()&&!testLoad?1:0.4,fontFamily:"var(--fn)"}}>전송</button>
+                  <button type="button" onClick={()=>testSend()} disabled={!testInp.trim()||testLoad} style={{padding:"7px 14px",borderRadius:8,border:"none",background:clone.color||"var(--cy)",color:"#000",fontSize:11,fontWeight:700,cursor:testInp.trim()&&!testLoad?"pointer":"not-allowed",opacity:testInp.trim()&&!testLoad?1:0.4,fontFamily:"var(--fn)"}}>전송</button>
                 </div>
               </div>
               <div style={{display:"flex",justifyContent:"flex-end",marginTop:7}}>
-                <button type="button" onClick={()=>setTestMsgs([{r:"a",t:clone.welcomeMsg||"테스트 시작",src:""}])} style={{fontSize:10,color:"var(--tx3)",background:"none",border:"none",cursor:"pointer",fontFamily:"var(--mo)",textDecoration:"underline"}}>대화 초기화</button>
+                <button type="button" onClick={()=>{setTestConvId(null);setTestMsgs([{r:"a",t:clone.welcomeMsg||"테스트 시작",src:""}]);}} style={{fontSize:10,color:"var(--tx3)",background:"none",border:"none",cursor:"pointer",fontFamily:"var(--mo)",textDecoration:"underline"}}>대화 초기화</button>
               </div>
             </div>}
           </Cd>
@@ -527,6 +655,55 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
 
         {/* ════ 인사이트 ════ */}
         {tab==="insight"&&<div style={{animation:"fu 0.3s ease"}}>
+
+          {/* ── 자료별 참조 현황 (PRD 인사이트) ── */}
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>📎 자료별 참조 현황</div>
+          <Cd style={{padding:"13px 15px",marginBottom:14}}>
+            <div style={{fontSize:11,color:"var(--tx2)",lineHeight:1.55,marginBottom:10}}>
+              RAG 답변에 쓰인 학습 파일별 <b style={{color:"var(--tx)"}}>청크 인용 횟수</b>를 월 단위로 집계합니다. (<code style={{fontSize:10}}>file_reference_stats</code>)
+            </div>
+            {!UUID_RE.test(String(clone.id||""))&&(
+              <div style={{fontSize:11,color:"var(--tx3)",padding:"10px",background:"var(--sf2)",borderRadius:8}}>데모 클론 ID는 DB와 연결되지 않습니다. 대시보드에서 생성한 클론에서 확인하세요.</div>
+            )}
+            {UUID_RE.test(String(clone.id||""))&&<>
+              <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center",marginBottom:10}}>
+                <select value={refPeriodFilter} onChange={e=>setRefPeriodFilter(e.target.value)} style={{padding:"6px 10px",borderRadius:7,border:"1px solid var(--br2)",background:"var(--sf2)",color:"var(--tx)",fontSize:11,outline:"none",fontFamily:"var(--mo)",cursor:"pointer"}}>
+                  <option value="all">전체 기간 합산</option>
+                  {fileRefPeriods.map(p=><option key={p} value={p}>{p.replace("-","년 ")}월{p===fileRefCurMonth?" (이번 달)":""}</option>)}
+                </select>
+                <Bt v="sf" sz="sm" dis={fileRefLoading} on={()=>setFileRefTick(t=>t+1)} style={{fontSize:10}}>새로고침</Bt>
+                {fileRefLoading&&<span style={{fontSize:10,color:"var(--tx3)"}}>불러오는 중…</span>}
+              </div>
+              {fileRefErr&&<div style={{fontSize:11,color:"var(--rd)",marginBottom:8}}>{fileRefErr}</div>}
+              {!fileRefLoading&&!fileRefErr&&(!fileRefRows||fileRefRows.length===0)&&(
+                <div style={{fontSize:11,color:"var(--tx3)",textAlign:"center",padding:"14px"}}>아직 참조 기록이 없습니다. 구독자·테스트 채팅에서 자료 기반(RAG) 답변이 나오면 집계됩니다.</div>
+              )}
+              {!fileRefLoading&&!fileRefErr&&fileRefRows?.length>0&&fileRefDisplay.length===0&&refPeriodFilter!=="all"&&(
+                <div style={{fontSize:11,color:"var(--tx3)",textAlign:"center",padding:"14px"}}>선택한 월({refPeriodFilter})에는 참조 기록이 없습니다. 다른 월을 선택하거나 「전체 기간 합산」을 보세요.</div>
+              )}
+              {!fileRefLoading&&fileRefDisplay.length>0&&(
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {fileRefDisplay.map((row,i)=>{
+                    const ext=row.type||((row.name||"").split(".").pop()||"").toUpperCase();
+                    const col=CAT_COLORS[ext]||FTYPE_C[ext]||"var(--tx2)";
+                    const max=Math.max(...fileRefDisplay.map(x=>x.count),1);
+                    return(
+                      <div key={row.file_id+"-"+i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"var(--sf2)",borderRadius:8,border:"1px solid var(--br2)"}}>
+                        <span style={{fontSize:10,fontWeight:700,minWidth:36,color:col,fontFamily:"var(--mo)"}}>{ext||"—"}</span>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:11,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{row.name}</div>
+                          <div style={{marginTop:4,height:4,background:"var(--sf3)",borderRadius:2,overflow:"hidden"}}>
+                            <div style={{height:"100%",width:`${(row.count/max)*100}%`,background:"var(--cy)",borderRadius:2}}/>
+                          </div>
+                        </div>
+                        <span style={{fontSize:12,fontWeight:800,color:"var(--cy)",minWidth:40,textAlign:"right",fontFamily:"var(--mo)"}}>{row.count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>}
+          </Cd>
 
           {/* ── 피드백 ── */}
           <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>💬 피드백</div>
