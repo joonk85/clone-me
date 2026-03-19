@@ -3,6 +3,7 @@
 
 export const GLOBAL_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;500&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -32,19 +33,21 @@ export const GLOBAL_CSS = `
   --tx2:rgba(232,232,240,0.55);
   --tx3:rgba(232,232,240,0.22);
 
-  /* ── Typography ── */
-  --fn:'Syne',system-ui,sans-serif;
+  /* ── Typography (STYLE_GUIDE: 12/14/16/18/24/32/48, line-height 1.5) ── */
+  --fn:'Pretendard Variable',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fn-title:'Syne',system-ui,sans-serif;
   --mo:'Space Mono',ui-monospace,monospace;
-  --fs-xs:10px;
-  --fs-sm:11px;
+  --fs-xs:12px;
+  --fs-sm:12px;
   --fs-caption:12px;
   --fs-body:14px;
-  --fs-lead:13px;
+  --fs-lead:14px;
   --fs-h3:18px;
-  --fs-h2:20px;
-  --fs-h1:22px;
-  --fs-h1-mobile:20px;
+  --fs-h2:24px;
+  --fs-h1:32px;
+  --fs-h1-mobile:24px;
   --fs-input-mobile:16px;
+  --lh:1.5;
 
   /* ── Radius ── */
   --r-sm:6px;
@@ -108,9 +111,11 @@ html,body{
   color:var(--tx);
   font-family:var(--fn);
   font-size:var(--fs-body);
+  line-height:var(--lh);
   overflow-x:hidden;
   -webkit-tap-highlight-color:transparent;
 }
+h1,h2,h3,h4,.font-title{font-family:var(--fn-title);}
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--br2);border-radius:2px}
@@ -122,9 +127,12 @@ html,body{
 }
 .nav-scroll::-webkit-scrollbar{display:none}
 
+/* 홈 비로그인 히어로 — 섹션 스코프 (Home.jsx .home-hero), 전역 토큰만 사용 */
+.home-hero{}
+
 /* 홈 비로그인 히어로 — 시안·퍼플 그라디언트 타이틀 (토큰만) */
 .home-hero-gradient-title{
-  font-family:var(--fn);
+  font-family:var(--fn-title);
   font-weight:800;
   letter-spacing:-0.04em;
   line-height:1.06;

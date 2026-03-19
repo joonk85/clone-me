@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-
+import {
+  BoltIcon,
+  ChatBubbleLeftRightIcon,
+  CheckIcon,
+  DocumentIcon,
+  LightBulbIcon,
+  LinkIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  StarIcon,
+  VideoCameraIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import Av from "../common/Av";
 import MasterBadges from "../common/MasterBadges";
 import Bt from "../common/Bt";
@@ -47,11 +60,11 @@ function formatSourceLine(s) {
   const name = s.file_name || "자료";
   if (ft === "SRT") {
     const ts = s.timestamp_start ? ` · ${s.timestamp_start}${s.timestamp_end ? `–${s.timestamp_end}` : ""}` : "";
-    return { icon: "📺", text: `${name}${ts}` };
+    return { type: "srt", text: `${name}${ts}` };
   }
   const page = s.page_number != null ? ` · ${s.page_number}페이지` : "";
   const sec = s.section_title ? ` · ${s.section_title}` : "";
-  return { icon: "📄", text: `${name}${page}${sec}` };
+  return { type: "doc", text: `${name}${page}${sec}` };
 }
 
 function formatRailDate(iso) {
@@ -258,7 +271,7 @@ export default function Chat({
   const completeSurvey = () => {
     setSurveyDone((p) => [...p, clone.id]);
     setSurveyStep("done");
-    setMsgs((p) => [...p, { r: "a", t: "설문 감사합니다! 🎉 무료 대화 +5회가 추가됐습니다.", sources: [] }]);
+    setMsgs((p) => [...p, { r: "a", t: "설문 감사합니다! 무료 대화 +5회가 추가됐습니다.", sources: [] }]);
   };
 
   const send = useCallback(async () => {
@@ -396,7 +409,10 @@ export default function Chat({
         >
           {surveyStep === "intro" && (
             <>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 5 }}>잠깐, 짧은 질문이 있어요! 🙋</div>
+              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 5, display: "flex", alignItems: "center", gap: 6 }}>
+                <ChatBubbleLeftRightIcon style={{ width: 20, height: 20, color: "var(--cy)" }} />
+                잠깐, 짧은 질문이 있어요!
+              </div>
               <p style={{ fontSize: 12, color: "var(--tx2)", lineHeight: 1.7, marginBottom: 10 }}>
                 1~2분이면 충분하고, <span style={{ color: "var(--cy)", fontWeight: 600 }}>완료하면 대화 +5회</span>!
               </p>
@@ -488,7 +504,7 @@ export default function Chat({
                   />
                   <div style={{ display: "flex", gap: 6 }}>
                     <Bt v="pr" sz="sm" dis={!surveyAns[qi]} on={() => (qi < qs.length - 1 ? setSurveyStep(`q${qi + 1}`) : completeSurvey())}>
-                      {qi < qs.length - 1 ? "다음" : "완료 ✓"}
+                      {qi < qs.length - 1 ? "다음" : (<><CheckIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 4 }} />완료</>)}
                     </Bt>
                     <Bt v="gh" sz="sm" on={() => (qi > 0 ? setSurveyStep(`q${qi - 1}`) : setSurveyStep("basic"))}>
                       ←
@@ -528,9 +544,16 @@ export default function Chat({
               className="chat-claude-rail-overlay"
               data-open={railOpen ? "true" : "false"}
               onClick={() => setRailOpen(false)}
+              onKeyDown={(e) => e.key === "Escape" && setRailOpen(false)}
               aria-label="사이드 패널 닫기"
+              aria-hidden={!railOpen}
             />
-            <aside className="chat-claude-rail" data-open={railOpen ? "true" : "false"}>
+            <aside
+              className="chat-claude-rail"
+              data-open={railOpen ? "true" : "false"}
+              aria-label="대화 목록"
+              onKeyDown={(e) => e.key === "Escape" && setRailOpen(false)}
+            >
               <div className="chat-claude-rail-new">
                 <button type="button" className="chat-claude-rail-new-btn" onClick={startNewChat}>
                   <span style={{ fontSize: 18, fontWeight: 300, lineHeight: 1 }} aria-hidden>
@@ -661,7 +684,10 @@ export default function Chat({
                 flexShrink: 0,
               }}
             >
-              <span>💡 무료 체험 {rem}회 남았습니다</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <LightBulbIcon style={{ width: 16, height: 16 }} />
+                무료 체험 {rem}회 남았습니다
+              </span>
               <Bt v="pr" sz="sm">
                 {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`}
               </Bt>
@@ -681,7 +707,10 @@ export default function Chat({
                 flexShrink: 0,
               }}
             >
-              <span>⚡ 마지막 무료 체험 1회입니다</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <BoltIcon style={{ width: 16, height: 16 }} />
+                마지막 무료 체험 1회입니다
+              </span>
               <Bt v="pr" sz="sm" style={{ background: "var(--am)" }}>
                 지금 구독하기
               </Bt>
@@ -709,17 +738,19 @@ export default function Chat({
                             letterSpacing: "0.04em",
                           }}
                         >
-                          ✓ 고정 답변
+                          <CheckIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 4 }} />
+                          고정 답변
                         </div>
                       )}
                       {msg.r === "a" && clone.quality?.citation !== false && msg.sources?.length > 0 && (
                         <div className="chat-claude-sources">
                           <div className="chat-claude-sources-label">출처</div>
                           {msg.sources.map((s, j) => {
-                            const { icon, text } = formatSourceLine(s);
+                            const { type, text } = formatSourceLine(s);
+                            const SourceIcon = type === "srt" ? VideoCameraIcon : DocumentIcon;
                             return (
-                              <div key={s.chunk_id || j} className="chat-claude-source-line" style={{ marginTop: j ? 6 : 0 }}>
-                                <span style={{ marginRight: 6 }}>{icon}</span>
+                              <div key={s.chunk_id || j} className="chat-claude-source-line" style={{ marginTop: j ? 6 : 0, display: "flex", alignItems: "center", gap: 6 }}>
+                                <SourceIcon style={{ width: 16, height: 16, flexShrink: 0, color: "var(--tx2)" }} />
                                 {text}
                                 {s.similarity != null && (
                                   <span style={{ color: "var(--tx3)", marginLeft: 6 }}>
@@ -750,7 +781,8 @@ export default function Chat({
                             fontFamily: "var(--fn)",
                           }}
                         >
-                          🔗 {msg.marketing.product || "관련 링크"}
+                          <LinkIcon style={{ width: 20, height: 20, display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
+                          {msg.marketing.product || "관련 링크"}
                           {msg.marketing.price ? (
                             <span style={{ fontWeight: 500, color: "var(--tx2)", marginLeft: 8 }}>{msg.marketing.price}</span>
                           ) : null}
@@ -829,7 +861,8 @@ export default function Chat({
                               color: "var(--tx2)",
                             }}
                           >
-                            🔒 구독 후 전체 답변 확인
+                            <LockClosedIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
+                            구독 후 전체 답변 확인
                           </div>
                         </div>
                       </div>
@@ -860,7 +893,8 @@ export default function Chat({
                             borderLeft: "2px solid var(--chat-accent, var(--cy))",
                           }}
                         >
-                          💡 토큰을 충전하면 이 주제를 더 깊이 이어갈 수 있어요.
+                          <LightBulbIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
+                          토큰을 충전하면 이 주제를 더 깊이 이어갈 수 있어요.
                         </div>
                         <Bt v="pr" on={() => navigate("/my/tokens")} style={{ width: "100%", justifyContent: "center", background: "var(--chat-accent, var(--cy))" }}>
                           {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`} · 충전하기
@@ -894,7 +928,10 @@ export default function Chat({
               </button>
             </div>
             <div className="chat-claude-input-foot">
-              <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>🔐 학습 자료 기반 답변</span>
+              <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <ShieldCheckIcon style={{ width: 16, height: 16 }} />
+                학습 자료 기반 답변
+              </span>
               {!fbDone && (
                 <button
                   type="button"
@@ -913,7 +950,10 @@ export default function Chat({
                 </button>
               )}
               {fbDone && (
-                <span style={{ fontSize: 10, color: "var(--gn)", fontFamily: "var(--mo)" }}>✓ 피드백 감사합니다</span>
+                <span style={{ fontSize: 10, color: "var(--gn)", fontFamily: "var(--mo)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <CheckIcon style={{ width: 16, height: 16 }} />
+                  피드백 감사합니다
+                </span>
               )}
             </div>
           </div>
@@ -951,7 +991,7 @@ export default function Chat({
                   padding: 4,
                 }}
               >
-                ×
+                <XMarkIcon style={{ width: 20, height: 20 }} />
               </button>
             </div>
             <MasterBadges verified={clone.isVerified ?? clone.featured} affiliate={clone.isAffiliate} />
@@ -971,7 +1011,10 @@ export default function Chat({
               {clone.priceLabel || `토큰 ${clone.token_price ?? 1} / 메시지`}
             </div>
             {isSub && (
-              <div style={{ marginTop: 10, fontSize: 11, color: "var(--go)", fontFamily: "var(--mo)" }}>✓ 구독 중 · 월 {monthly}/{MONTHLY_CAP} 메시지</div>
+              <div style={{ marginTop: 10, fontSize: 11, color: "var(--go)", fontFamily: "var(--mo)", display: "flex", alignItems: "center", gap: 4 }}>
+                <CheckIcon style={{ width: 16, height: 16 }} />
+                구독 중 · 월 {monthly}/{MONTHLY_CAP} 메시지
+              </div>
             )}
           </div>
         </div>
@@ -1005,15 +1048,18 @@ export default function Chat({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 2 }}>대화는 어떠셨나요? 💬</div>
+                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  <ChatBubbleLeftRightIcon style={{ width: 20, height: 20, color: "var(--tx)" }} />
+                  대화는 어떠셨나요?
+                </div>
                 <div style={{ fontSize: 11, color: "var(--tx2)" }}>피드백은 강사에게 직접 전달됩니다</div>
               </div>
               <button
                 type="button"
                 onClick={() => setFbPopup(false)}
-                style={{ background: "none", border: "none", color: "var(--tx3)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 4 }}
+                style={{ background: "none", border: "none", color: "var(--tx3)", cursor: "pointer", lineHeight: 1, padding: 4 }}
               >
-                ×
+                <XMarkIcon style={{ width: 20, height: 20 }} />
               </button>
             </div>
             <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
@@ -1031,15 +1077,22 @@ export default function Chat({
                     fontSize: 20,
                     cursor: "pointer",
                     transition: "all 0.1s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  ★
+                  {fbR >= n ? (
+                  <StarIconSolid style={{ width: 24, height: 24, color: "var(--go)" }} />
+                ) : (
+                  <StarIcon style={{ width: 24, height: 24, color: "var(--br)" }} />
+                )}
                 </button>
               ))}
             </div>
             {fbR > 0 && (
               <div style={{ fontSize: 11, color: "var(--tx2)", textAlign: "center", marginBottom: 8, fontFamily: "var(--mo)" }}>
-                {["", "별로예요", "아쉬워요", "보통이에요", "좋아요!", "최고예요! 🎉"][fbR]}
+                {["", "별로예요", "아쉬워요", "보통이에요", "좋아요!", "최고예요!"][fbR]}
               </div>
             )}
             <textarea

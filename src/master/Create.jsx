@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CheckIcon, DocumentIcon, FolderIcon } from "@heroicons/react/24/outline";
 
 import Av from "../common/Av";
 import Bt from "../common/Bt";
@@ -247,7 +248,7 @@ export default function Create() {
                   color: step === i + 1 ? "var(--cy)" : step > i + 1 ? "var(--gn)" : "var(--tx3)",
                 }}
               >
-                {step > i + 1 ? "✓ " : ""}
+                {step > i + 1 ? <CheckIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 4 }} /> : null}
                 {s}
               </div>
             </div>
@@ -295,15 +296,15 @@ export default function Create() {
                   setFiles((p) => [...p, ...[...e.target.files].map((f) => ({ n: f.name, s: (f.size / 1024 / 1024).toFixed(1) + " MB" }))])
                 }
               />
-              <div style={{ fontSize: 20, marginBottom: 6 }}>📂</div>
+              <div style={{ marginBottom: 6 }}><FolderIcon style={{ width: 24, height: 24, color: "var(--tx2)" }} /></div>
               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 3 }}>드래그 또는 클릭</div>
               <div style={{ fontSize: 11, color: "var(--tx3)", fontFamily: "var(--mo)" }}>PDF · DOCX · TXT · SRT</div>
             </div>
             {files.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 12 }}>
                 {files.map((f, i) => (
-                  <div key={i} style={{ display: "flex", gap: 8, padding: "6px 10px", background: "var(--sf)", border: "1px solid var(--br)", borderRadius: 8 }}>
-                    <span style={{ fontSize: 12 }}>📄</span>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "var(--sf)", border: "1px solid var(--br)", borderRadius: 8 }}>
+                    <DocumentIcon style={{ width: 16, height: 16, flexShrink: 0, color: "var(--tx2)" }} />
                     <span style={{ flex: 1, fontSize: 12 }}>{f.n}</span>
                     <span style={{ fontSize: 10, color: "var(--tx3)", fontFamily: "var(--mo)" }}>{f.s}</span>
                   </div>
@@ -449,8 +450,9 @@ export default function Create() {
                   </div>
                 </div>
               </div>
-              <div style={{ marginTop: 10, padding: "7px 10px", background: "var(--sf2)", borderRadius: 7, fontSize: 11, color: "var(--tx2)" }}>
-                📄 선택 파일 {files.length}개
+              <div style={{ marginTop: 10, padding: "7px 10px", background: "var(--sf2)", borderRadius: 7, fontSize: 11, color: "var(--tx2)", display: "flex", alignItems: "center", gap: 6 }}>
+                <DocumentIcon style={{ width: 16, height: 16 }} />
+                선택 파일 {files.length}개
                 {isAnon && <span style={{ color: "var(--am)", marginLeft: 8 }}>익명</span>}
               </div>
             </Cd>

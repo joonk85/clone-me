@@ -121,9 +121,9 @@ export default function Nav() {
                 boxShadow: "0 0 12px var(--cyg)",
               }}
             >
-              <span style={{ fontSize: 14, fontWeight: 900, color: "var(--on-cy)", fontFamily: "var(--fn)" }}>c</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: "var(--on-cy)", fontFamily: "var(--fn-title)" }}>c</span>
             </div>
-            <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)" }}>
+            <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)", fontFamily: "var(--fn-title)" }}>
               clone.me
             </span>
           </div>
@@ -270,9 +270,9 @@ export default function Nav() {
             boxShadow: "0 0 10px var(--cyg)",
           }}
         >
-          <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)" }}>c</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: "var(--on-cy)", fontFamily: "var(--fn-title)" }}>c</span>
         </div>
-        <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)" }}>
+        <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--tx)", fontFamily: "var(--fn-title)" }}>
           clone.me
         </span>
       </div>

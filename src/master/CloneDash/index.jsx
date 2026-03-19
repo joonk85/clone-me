@@ -1,4 +1,26 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  ArrowUpTrayIcon,
+  BeakerIcon,
+  BookOpenIcon,
+  BookmarkIcon,
+  BoltIcon,
+  ChatBubbleLeftRightIcon,
+  CheckCircleIcon,
+  ClipboardDocumentListIcon,
+  CurrencyDollarIcon,
+  DocumentIcon,
+  ExclamationTriangleIcon,
+  FolderIcon,
+  LightBulbIcon,
+  LinkIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  Square3Stack3DIcon,
+  TrashIcon,
+  VideoCameraIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 
 import Av from "../../common/Av";
 import Bt from "../../common/Bt";
@@ -55,7 +77,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
   const now2=new Date();
   const [rYear,setRYear]=useState(now2.getFullYear());
   const [rMonth,setRMonth]=useState(now2.getMonth()+1);
-  const NOTICE_TYPES=["일반","📌 중요","🎉 이벤트","📚 자료 업데이트","⚠️ 주의사항"];
+  const NOTICE_TYPES=["일반","중요","이벤트","자료 업데이트","주의사항"];
   const FTYPE_C={PDF:"var(--rd)",DOCX:"var(--cy)",TXT:"var(--gn)",SRT:"var(--am)",NOTION:"var(--pu)",VIDEO:"var(--am)"};
   const matFileRef=useRef(null);
   const CAT_COLORS={PDF:"var(--rd)","DOCX":"var(--cy)","TXT":"var(--gn)","SRT":"var(--am)"};
@@ -244,16 +266,16 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
 
           {/* Share link */}
           <Cd style={{padding:"14px 16px",marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:700,marginBottom:9}}>🔗 공유 링크</div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:9,display:"flex",alignItems:"center",gap:6}}><LinkIcon style={{width:16,height:16}} />공유 링크</div>
             <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
               <div style={{flex:1,padding:"7px 11px",background:"var(--sf2)",borderRadius:7,fontFamily:"var(--mo)",fontSize:11,color:"var(--cy)",minWidth:140}}>clone.me/@{clone.name.replace(/\s|·/g,"").toLowerCase()}</div>
-              <Bt v="sf" sz="sm">복사</Bt><Bt v="sf" sz="sm">QR</Bt><Bt v="sf" sz="sm">💬 카카오</Bt>
+              <Bt v="sf" sz="sm">복사</Bt><Bt v="sf" sz="sm">QR</Bt><Bt v="sf" sz="sm" style={{display:"inline-flex",alignItems:"center",gap:4}}><ChatBubbleLeftRightIcon style={{width:16,height:16}} />카카오</Bt>
             </div>
           </Cd>
 
           {/* Pricing management */}
           <Cd style={{padding:"16px 18px",marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:700,marginBottom:12}}>💰 구독료 관리</div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:12,display:"flex",alignItems:"center",gap:6}}><CurrencyDollarIcon style={{width:16,height:16}} />구독료 관리</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
               <div>
                 <label style={{fontSize:11,color:"var(--tx3)",fontFamily:"var(--mo)",display:"block",marginBottom:5}}>월 구독료 (원)</label>
@@ -318,12 +340,12 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
         {tab==="clone"&&<div style={{animation:"fu 0.3s ease"}}>
 
           {/* ── 섹션 헤더 ── */}
-          {[["📦 자료 관리","materials-sec"],["🔗 외부 자료 연동","external-sec"],["🧠 답변 품질 & 유사도","quality-sec"],["🔐 보안 설정","security-sec"]].map(([l,id])=>(
+          {[["자료 관리","materials-sec"],["외부 자료 연동","external-sec"],["답변 품질 & 유사도","quality-sec"],["보안 설정","security-sec"]].map(([l,id])=>(
             <div key={id} style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:id==="materials-sec"?0:28}}>{l}</div>
           )).slice(0,0) /* replaced inline below */}
 
           {/* ────────────── 자료 관리 ────────────── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>📦 자료 관리</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><Square3Stack3DIcon style={{width:16,height:16}} />자료 관리</div>
 
           {training!=="idle"&&<div style={{padding:"10px 14px",borderRadius:10,marginBottom:12,border:"1px solid var(--br2)",background:"var(--cyd)",display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:14,height:14,borderRadius:"50%",border:"2px solid var(--cy)",borderTopColor:"transparent",animation:"sp 0.8s linear infinite",flexShrink:0}}/>
@@ -334,12 +356,12 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             <Tg label={training==="uploading"?"업로드":"학습중"} c="cy"/>
           </div>}
           {dupWarning&&<div style={{padding:"10px 14px",borderRadius:10,marginBottom:12,border:"1px solid rgba(255,179,71,0.4)",background:"rgba(255,179,71,0.08)"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"var(--am)",marginBottom:4}}>⚠️ 중복 파일 건너뜀</div>
+            <div style={{fontSize:12,fontWeight:700,color:"var(--am)",marginBottom:4,display:"flex",alignItems:"center",gap:6}}><ExclamationTriangleIcon style={{width:16,height:16}} />중복 파일 건너뜀</div>
             {dupWarning.map(n=><div key={n} style={{fontSize:11,color:"var(--tx2)",fontFamily:"var(--mo)"}}>{n}</div>)}
             <button type="button" onClick={()=>setDupWarning(null)} style={{fontSize:11,color:"var(--am)",background:"none",border:"none",cursor:"pointer",fontFamily:"var(--mo)",textDecoration:"underline",marginTop:5}}>닫기</button>
           </div>}
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
-            <div style={{fontSize:12,fontWeight:700,marginBottom:6}}>📤 자료 업로드</div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}><ArrowUpTrayIcon style={{width:16,height:16}} />자료 업로드</div>
             <div style={{fontSize:12,color:"var(--tx2)",marginBottom:9}}>기존 지식에 누적됩니다. 동일한 파일명은 중복 처리됩니다.</div>
             <input ref={matFileRef} type="file" multiple accept=".pdf,.docx,.txt,.srt" style={{display:"none"}} onChange={e=>handleAddFiles([...e.target.files])}/>
             {/* Drop zone + similarity badge side by side */}
@@ -348,7 +370,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 style={{flex:1,border:"2px dashed var(--br)",borderRadius:10,padding:"18px 14px",textAlign:"center",cursor:"pointer",transition:"all 0.2s"}}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--cy)";e.currentTarget.style.background="var(--cyg)";}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--br)";e.currentTarget.style.background="transparent";}}>
-                <div style={{fontSize:18,marginBottom:4}}>📂</div>
+                <div style={{marginBottom:4}}><FolderIcon style={{width:20,height:20,color:"var(--tx2)"}} /></div>
                 <div style={{fontSize:12,fontWeight:700,marginBottom:2}}>드래그 또는 클릭</div>
                 <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)"}}>PDF · DOCX · TXT · SRT</div>
               </div>
@@ -372,12 +394,12 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                 );
               })()}
             </div>
-            <div style={{fontSize:11,color:"var(--gn)",fontFamily:"var(--mo)",marginTop:8,opacity:0.85}}>🔐 AES-256 암호화 저장</div>
+            <div style={{fontSize:11,color:"var(--gn)",fontFamily:"var(--mo)",marginTop:8,opacity:0.85,display:"flex",alignItems:"center",gap:6}}><ShieldCheckIcon style={{width:16,height:16}} />AES-256 암호화 저장</div>
           </Cd>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div>
-                <div style={{fontSize:12,fontWeight:700}}>📚 현재 학습 자료</div>
+                <div style={{fontSize:12,fontWeight:700,display:"flex",alignItems:"center",gap:6}}><BookOpenIcon style={{width:16,height:16}} />현재 학습 자료</div>
                 <div style={{fontSize:11,color:"var(--tx2)",marginTop:2}}>
                   총 {(clone.files||[]).length}개 · {((clone.files||[]).reduce((s,f)=>s+parseFloat(f.size),0)).toFixed(1)} MB · 약 {((clone.files||[]).reduce((s,f)=>s+(f.words||0),0)/10000).toFixed(1)}만 자
                 </div>
@@ -400,7 +422,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                     </div>
                     {deleteConfirm===f.id
                       ?<div style={{display:"flex",gap:5}}><button type="button" onClick={()=>handleDeleteFile(f.id,f.name)} style={{padding:"3px 8px",borderRadius:5,border:"1px solid var(--rd)",background:"var(--tg-rd-bg)",color:"var(--rd)",fontSize:11,cursor:"pointer",fontFamily:"var(--fn)"}}>삭제 확인</button><button type="button" onClick={()=>setDeleteConfirm(null)} style={{padding:"3px 7px",borderRadius:5,border:"1px solid var(--br)",background:"transparent",color:"var(--tx2)",fontSize:11,cursor:"pointer"}}>취소</button></div>
-                      :<button type="button" onClick={()=>setDeleteConfirm(f.id)} style={{width:26,height:26,borderRadius:5,border:"1px solid var(--br)",background:"transparent",color:"var(--tx3)",cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>🗑</button>
+                      :<button type="button" onClick={()=>setDeleteConfirm(f.id)} style={{width:26,height:26,borderRadius:5,border:"1px solid var(--br)",background:"transparent",color:"var(--tx3)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}} aria-label="삭제"><TrashIcon style={{width:16,height:16}} /></button>
                     }
                   </div>
                 ))}
@@ -409,7 +431,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ────────────── 클론 테스트 ────────────── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:14}}>🧪 내 클론 테스트</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:14,display:"flex",alignItems:"center",gap:6}}><BeakerIcon style={{width:16,height:16}} />내 클론 테스트</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <div>
@@ -422,11 +444,11 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             </div>
             {testOpen&&<div style={{animation:"fu 0.25s ease"}}>
               <div style={{background:"rgba(255,179,71,0.07)",border:"1px solid rgba(255,179,71,0.25)",borderRadius:8,padding:"7px 11px",marginBottom:10,fontSize:11,color:"var(--am)",display:"flex",gap:6,alignItems:"center"}}>
-                <span>⚡</span><span>테스트 모드 — 로그인 + DB 클론이면 /api/chat(RAG)과 동일합니다.</span>
+                <BoltIcon style={{width:16,height:16,flexShrink:0}} /><span>테스트 모드 — 로그인 + DB 클론이면 /api/chat(RAG)과 동일합니다.</span>
               </div>
               <div style={{marginBottom:12,border:"1px solid var(--br2)",borderRadius:10,overflow:"hidden",background:"var(--sf2)"}}>
                 <button type="button" onClick={()=>setScenarioPanelOpen(v=>!v)} style={{width:"100%",padding:"10px 12px",border:"none",background:"var(--cyd)",color:"var(--cy)",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"var(--fn)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span>📋 구조화 테스트 10종 (PRD)</span>
+                  <span style={{display:"flex",alignItems:"center",gap:6}}><ClipboardDocumentListIcon style={{width:16,height:16}} />구조화 테스트 10종 (PRD)</span>
                   <span>{scenarioPanelOpen?"▲":"▼"}</span>
                 </button>
                 {scenarioPanelOpen&&<div style={{padding:"10px 12px 12px",maxHeight:320,overflowY:"auto"}}>
@@ -451,7 +473,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                         <span style={{fontSize:9,color:"var(--tx3)",fontFamily:"var(--mo)"}}>자가평가</span>
                         {["ok","warn","bad"].map((k)=>(
                           <button key={k} type="button" onClick={()=>setScenarioMarks(p=>({...p,[sc.id]:k}))} style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${scenarioMarks[sc.id]===k?"var(--cy)":"var(--br)"}`,background:scenarioMarks[sc.id]===k?"var(--cyd)":"transparent",fontSize:10,cursor:"pointer",fontFamily:"var(--mo)",color:scenarioMarks[sc.id]===k?"var(--cy)":"var(--tx3)"}}>
-                            {k==="ok"?"✅":k==="warn"?"⚠️":"❌"}
+                            {k==="ok"?<CheckCircleIcon style={{width:16,height:16}} />:k==="warn"?<ExclamationTriangleIcon style={{width:16,height:16}} />:<XCircleIcon style={{width:16,height:16}} />}
                           </button>
                         ))}
                       </div>
@@ -471,14 +493,15 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
                           {m.t}
                         </div>
                         {m.src&&<div style={{fontSize:9,color:m.src?.includes("고정")?"var(--go)":m.src==="RAG+Claude"?"var(--cy)":"var(--tx3)",fontFamily:"var(--mo)",marginTop:2,paddingLeft:4}}>
-                          {m.src?.includes("고정")?"📌 고정 답변":m.src==="RAG+Claude"?"📚 RAG+Claude":m.src==="Claude"?"🤖 Claude":m.src||""}
+                          {m.src?.includes("고정")?<><BookmarkIcon style={{width:12,height:12,display:"inline-block",verticalAlign:"middle",marginRight:4}} />고정 답변</>:m.src==="RAG+Claude"?<><BookOpenIcon style={{width:12,height:12,display:"inline-block",verticalAlign:"middle",marginRight:4}} />RAG+Claude</>:m.src==="Claude"?"Claude":m.src||""}
                         </div>}
                         {m.r==="a"&&m.sources?.length>0&&<div style={{marginTop:6,padding:"6px 8px",borderRadius:6,background:"var(--cyg)",border:"1px solid var(--br2)",fontSize:9,color:"var(--tx2)",fontFamily:"var(--mo)",lineHeight:1.45}}>
                           <div style={{color:"var(--cy)",marginBottom:4}}>출처</div>
                           {m.sources.map((s,j)=>{
                             const ft=(s.file_type||"").toUpperCase();
-                            const line=ft==="SRT"?`📺 ${s.file_name||""}${s.timestamp_start?` · ${s.timestamp_start}`:""}`:`📄 ${s.file_name||""}${s.page_number!=null?` · ${s.page_number}p`:""}${s.section_title?` · ${s.section_title}`:""}`;
-                            return <div key={s.chunk_id||j}>{line}</div>;
+                            const isSrt=ft==="SRT";
+                            const text=isSrt?`${s.file_name||""}${s.timestamp_start?` · ${s.timestamp_start}`:""}`:`${s.file_name||""}${s.page_number!=null?` · ${s.page_number}p`:""}${s.section_title?` · ${s.section_title}`:""}`;
+                            return <div key={s.chunk_id||j} style={{display:"flex",alignItems:"center",gap:6}}>{isSrt?<VideoCameraIcon style={{width:14,height:14,flexShrink:0}} />:<DocumentIcon style={{width:14,height:14,flexShrink:0}} />}{text}</div>;
                           })}
                         </div>}
                       </div>
@@ -505,7 +528,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </button>
           {showAdvanced&&<div style={{animation:"fu 0.25s ease"}}>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
-            <div style={{fontSize:12,fontWeight:700,marginBottom:8}}>📋 버전 히스토리 <span style={{fontSize:10,color:"var(--tx3)",fontWeight:400}}>클릭해서 자료 목록 확인</span></div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:8,display:"flex",alignItems:"center",gap:6}}><ClipboardDocumentListIcon style={{width:16,height:16}} />버전 히스토리 <span style={{fontSize:10,color:"var(--tx3)",fontWeight:400}}>클릭해서 자료 목록 확인</span></div>
             {[{v:clone.v||"v4",date:"2025.01.15",note:"협상 케이스 20개 추가"},{v:"v3",date:"2025.01.08",note:"콜드메일 자료 보강"},{v:"v2",date:"2024.12.20",note:"초기 자료 확장"},{v:"v1",date:"2024.12.01",note:"최초 출시"}].map((ver,i)=>{
               const vFiles=VER_FILES[ver.v]||[];
               return <div key={ver.v} style={{marginBottom:5}}>
@@ -529,7 +552,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ────────────── 외부 자료 연동 ────────────── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>🔗 외부 자료 연동</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24,display:"flex",alignItems:"center",gap:6}}><LinkIcon style={{width:16,height:16}} />외부 자료 연동</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
               <div style={{width:34,height:34,borderRadius:"var(--r-md)",background:"var(--cy)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:900,color:"var(--on-cy)",flexShrink:0,fontFamily:"var(--fn)"}}>N</div>
@@ -538,7 +561,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             </div>
             {[{t:"B2B 영업 전략 노트",w:4200,st:"synced"},{t:"콜드메일 템플릿 모음",w:1800,st:"synced"},{t:"협상 케이스스터디 20선",w:8100,st:"changed"},{t:"2025 영업 트렌드",w:0,st:"new"}].map((p,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:"1px solid var(--br)"}}>
-                <span style={{fontSize:12}}>📋</span>
+                <ClipboardDocumentListIcon style={{width:16,height:16,flexShrink:0}} />
                 <div style={{flex:1}}><div style={{fontSize:11,fontWeight:600}}>{p.t}</div><div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)"}}>{p.w>0?p.w.toLocaleString()+"자":"미연결"}</div></div>
                 <span style={{padding:"2px 7px",borderRadius:4,fontSize:10,fontFamily:"var(--mo)",background:p.st==="synced"?"rgba(79,255,176,0.08)":p.st==="changed"?"rgba(255,179,71,0.08)":"var(--cyd)",color:p.st==="synced"?"var(--gn)":p.st==="changed"?"var(--am)":"var(--cy)"}}>{p.st==="synced"?"✓ 동기화":p.st==="changed"?"변경 감지":"+ 추가 가능"}</span>
               </div>
@@ -599,7 +622,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
 
 
           {/* ────────────── 고정 답변 등록 ────────────── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>📌 고정 답변 등록</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24,display:"flex",alignItems:"center",gap:6}}><BookmarkIcon style={{width:16,height:16}} />고정 답변 등록</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{fontSize:12,fontWeight:700,marginBottom:4}}>특정 질문에 항상 이 답변을 하도록 설정</div>
             <div style={{fontSize:11,color:"var(--tx2)",marginBottom:12,lineHeight:1.6}}>
@@ -609,7 +632,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
               <div key={fq.id} style={{marginBottom:7}}>
                 <div onClick={()=>setFqOpen(fqOpen===fq.id?null:fq.id)}
                   style={{display:"flex",alignItems:"center",gap:9,padding:"9px 11px",background:"var(--sf2)",borderRadius:fqOpen===fq.id?"8px 8px 0 0":8,border:"1px solid var(--br2)",cursor:"pointer"}}>
-                  <span style={{fontSize:11,color:"var(--go)",flexShrink:0}}>📌</span>
+                  <BookmarkIcon style={{width:16,height:16,flexShrink:0,color:"var(--go)"}} />
                   <div style={{flex:1,fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{fq.q}</div>
                   <div style={{display:"flex",gap:5,alignItems:"center",flexShrink:0}}>
                     <button type="button" onClick={e=>{e.stopPropagation();setFixedQA(p=>p.filter(f=>f.id!==fq.id));}} style={{background:"none",border:"none",color:"var(--tx3)",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
@@ -633,7 +656,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ────────────── 보안 설정 ────────────── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>🔐 보안 설정</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24,display:"flex",alignItems:"center",gap:6}}><LockClosedIcon style={{width:16,height:16}} />보안 설정</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             {[{key:"deleteAfterTraining",label:"학습 완료 후 원본 파일 삭제",desc:"AI 학습 후 원본 자동 삭제. 벡터 인덱스만 유지.",def:true},{key:"anonymizeConversations",label:"대화 내용 익명화 저장",desc:"구독자 개인정보 익명 처리 후 통계로만 저장.",def:true},{key:"blockThirdPartyAccess",label:"제3자 자료 접근 차단",def:true},{key:"retainVersions",label:"버전 히스토리 보관",desc:"OFF 시 이전 버전 자료가 완전 삭제됩니다.",def:true}].map(({key,label,desc,def})=>(
               <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"10px 0",borderBottom:"1px solid var(--br)"}}>
@@ -643,7 +666,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             ))}
           </Cd>
           <Cd style={{padding:"12px 14px",borderColor:"rgba(255,79,109,0.2)"}}>
-            <div style={{fontSize:12,fontWeight:700,color:"var(--rd)",marginBottom:8}}>⚠️ 위험 구역</div>
+            <div style={{fontSize:12,fontWeight:700,color:"var(--rd)",marginBottom:8,display:"flex",alignItems:"center",gap:6}}><ExclamationTriangleIcon style={{width:16,height:16}} />위험 구역</div>
             <div style={{display:"flex",gap:8}}>
               {["모든 자료 즉시 삭제","클론 초기화"].map(l=>(
                 <button type="button" key={l} style={{flex:1,padding:"7px",borderRadius:7,border:"1px solid var(--err-border)",background:"var(--err-surface)",color:"var(--rd)",fontSize:11,cursor:"pointer",fontFamily:"var(--fn)"}}>{l}</button>
@@ -706,7 +729,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ── 피드백 ── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>💬 피드백</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><ChatBubbleLeftRightIcon style={{width:16,height:16}} />피드백</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
             {[["평균 평점","4.4 ★","var(--go)"],["총 피드백","4건","var(--cy)"],["미답변",FEEDBACKS.filter(f=>!f.replied).length+"건","var(--am)"]].map(([l,v,c])=>(
               <Cd key={l} style={{padding:"11px 12px",textAlign:"center"}}><div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",marginBottom:3}}>{l}</div><div style={{fontSize:16,fontWeight:800,color:c}}>{v}</div></Cd>
@@ -725,7 +748,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </div>
 
           {/* ── 수익 ── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:14}}>💰 수익</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:14,display:"flex",alignItems:"center",gap:6}}><CurrencyDollarIcon style={{width:16,height:16}} />수익</div>
           <Cd style={{padding:"13px 15px",marginBottom:10}}>
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:1,borderRadius:8,overflow:"hidden",border:"1px solid var(--br)"}}>
               {[["총 구독","₩824,000","var(--tx)"],["플랫폼 비용","−₩206,000","var(--rd)"],["내 수령액","₩618,000","var(--gn)"]].map(([l,v,c])=>(
@@ -744,7 +767,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ── 프로필 베스트 Q&A 선택 ── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>⭐ 프로필 샘플 대화 관리</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>프로필 샘플 대화 관리</div>
           <Cd style={{padding:"14px 16px",marginBottom:10}}>
             <div style={{fontSize:12,fontWeight:700,marginBottom:4}}>구매자에게 보여줄 베스트 Q&A</div>
             <div style={{fontSize:11,color:"var(--tx2)",marginBottom:12,lineHeight:1.6}}>
@@ -775,7 +798,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </Cd>
 
           {/* ── 리포트 ── */}
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24}}>📋 리포트</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,marginTop:24,display:"flex",alignItems:"center",gap:6}}><ClipboardDocumentListIcon style={{width:16,height:16}} />리포트</div>
           <Cd style={{padding:"13px 15px",marginBottom:10}}>
             <div style={{fontSize:11,fontWeight:700,marginBottom:10}}>조회 기간</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
@@ -851,7 +874,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           </button>
           {showAdvanced&&<div style={{animation:"fu 0.25s ease"}}>
           <Cd style={{padding:"13px 15px",marginBottom:10}}>
-            <div style={{fontSize:11,fontWeight:700,marginBottom:10}}>💬 대화 이력 <span style={{fontSize:10,color:"var(--tx3)",fontWeight:400}}>클릭해서 대화 내용 확인</span></div>
+            <div style={{fontSize:11,fontWeight:700,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><ChatBubbleLeftRightIcon style={{width:16,height:16}} />대화 이력 <span style={{fontSize:10,color:"var(--tx3)",fontWeight:400}}>클릭해서 대화 내용 확인</span></div>
             {CONV_HISTORY.map(c=>(
               <div key={c.id} style={{marginBottom:5}}>
                 <div onClick={()=>setExpandedConv(expandedConv===c.id?null:c.id)}
@@ -909,7 +932,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
               style={{width:"100%",padding:"9px 11px",border:"1px solid var(--br2)",borderRadius:8,background:"var(--sf2)",color:"var(--tx)",fontSize:12,outline:"none",fontFamily:"var(--fn)",resize:"none",height:80,lineHeight:1.6,marginBottom:8}}
               onChange={e=>updateClone(()=>({welcomeMsg:e.target.value}))}
             />
-            <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",marginBottom:8}}>💡 팁: 자신의 경력을 한 줄로 소개하고, 가장 잘 답할 수 있는 질문 유형을 먼저 유도하세요.</div>
+            <div style={{fontSize:10,color:"var(--tx3)",fontFamily:"var(--mo)",marginBottom:8,display:"flex",alignItems:"flex-start",gap:6}}><LightBulbIcon style={{width:16,height:16,flexShrink:0}} />팁: 자신의 경력을 한 줄로 소개하고, 가장 잘 답할 수 있는 질문 유형을 먼저 유도하세요.</div>
             <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
               {["콜드콜, 협상, 클로징 중 뭐가 가장 어려우세요?","지금 가장 급한 마케팅 고민이 뭔가요?","어느 단원이 가장 헷갈리시나요?"].map((t,i)=>(
                 <button type="button" key={i} onClick={()=>updateClone(()=>({welcomeMsg:(clone.welcomeMsg||"").slice(0,-0)+"\n"+t}))}
@@ -924,11 +947,11 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
           <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>📢 공지 관리</div>
           <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:10}}>
             {(clone.notices||[]).map((n,i)=>(
-              <Cd key={i} style={{padding:"11px 13px",borderColor:n.type==="📌 중요"?"rgba(255,200,50,0.3)":n.type==="⚠️ 주의사항"?"rgba(255,79,109,0.2)":"var(--br)"}}>
+              <Cd key={i} style={{padding:"11px 13px",borderColor:n.type==="중요"?"rgba(255,200,50,0.3)":n.type==="주의사항"?"rgba(255,79,109,0.2)":"var(--br)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
                   <span style={{fontSize:12,fontWeight:700}}>{n.title}</span>
                   <div style={{display:"flex",gap:5,alignItems:"center"}}>
-                    {n.type&&n.type!=="일반"&&<Tg label={n.type} c={n.type==="📌 중요"?"go":n.type==="⚠️ 주의사항"?"rd":"cy"}/>}
+                    {n.type&&n.type!=="일반"&&<Tg label={n.type} c={n.type==="중요"?"go":n.type==="주의사항"?"rd":"cy"}/>}
                     <Tg label={n.date}/>
                     <button type="button" onClick={()=>updateClone(p=>({notices:(p.notices||[]).filter((_,j)=>j!==i)}))} style={{background:"none",border:"none",color:"var(--tx3)",cursor:"pointer",fontSize:13,lineHeight:1}}>×</button>
                   </div>
@@ -956,7 +979,7 @@ export default function CloneDash({ clone, setClone, onBack, setView }) {
             {showAdvanced?"접기":"고급 설정 — 마케팅 링크"}
           </button>
           {showAdvanced&&<div style={{animation:"fu 0.25s ease"}}>
-          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10}}>🔗 마케팅 링크</div>
+          <div style={{fontSize:11,color:"var(--cy)",fontFamily:"var(--mo)",letterSpacing:"0.06em",marginBottom:10,display:"flex",alignItems:"center",gap:6}}><LinkIcon style={{width:16,height:16}} />마케팅 링크</div>
           <div style={{fontSize:11,color:"var(--tx2)",marginBottom:10,lineHeight:1.6}}>특정 주제가 나올 때 클론이 자연스럽게 강의를 언급합니다. <span style={{color:"var(--cy)"}}>직접 광고가 아닙니다.</span></div>
           <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:10}}>
             {(clone.mktLinks||[]).map((m,i)=>(

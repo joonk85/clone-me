@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import Bt from "../common/Bt";
 import LoadingSpinner from "../common/LoadingSpinner";
@@ -183,8 +184,8 @@ export default function Verified() {
     return (
       <div style={{ minHeight: 520, padding: 24, maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
         <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 12 }}>AUTH</div>
-        <div style={{ fontSize: 40, lineHeight: 1, marginBottom: 14 }} aria-hidden>
-          ✓
+        <div style={{ lineHeight: 1, marginBottom: 14 }} aria-hidden>
+          <CheckCircleIcon style={{ width: 24, height: 24, color: "var(--gn)" }} />
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 10 }}>
           {status === "already_verified" ? "이미 인증된 계정입니다" : "이메일 인증이 완료되었습니다"}

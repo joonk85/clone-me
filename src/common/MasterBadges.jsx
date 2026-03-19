@@ -1,7 +1,8 @@
 /**
- * 마스터 배지 (PRD) — ✓ 검증 | 🤝 제휴
+ * 마스터 배지 (PRD) — 검증 | 제휴 (Heroicons)
  * 카드·프로필·채팅 헤더·마이에서 공통 사용
  */
+import { CheckBadgeIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 
 const pill = {
   display: "inline-flex",
@@ -33,7 +34,8 @@ export default function MasterBadges({ verified, affiliate, size = "sm" }) {
             border: "1px solid var(--br2)",
           }}
         >
-          ✓ 검증
+          <CheckBadgeIcon style={{ width: 16, height: 16 }} />
+          검증
         </span>
       )}
       {affiliate && (
@@ -48,7 +50,8 @@ export default function MasterBadges({ verified, affiliate, size = "sm" }) {
             border: "1px solid var(--br2)",
           }}
         >
-          🤝 제휴
+          <HandRaisedIcon style={{ width: 16, height: 16 }} />
+          제휴
         </span>
       )}
     </span>

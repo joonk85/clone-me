@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 import Av from "../common/Av";
 import Bt from "../common/Bt";
@@ -210,7 +211,10 @@ function FeaturedCard({ c, onOpen, narrow }) {
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>{(c.tags || []).slice(0, 3).map((t) => <Tg key={t} label={t} />)}</div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--br)" }}>
-          <span style={{ fontSize: "var(--fs-sm)", color: "var(--go)", fontFamily: "var(--mo)" }}>★ {c.rating}</span>
+          <span style={{ fontSize: "var(--fs-sm)", color: "var(--go)", fontFamily: "var(--mo)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <StarIcon style={{ width: 16, height: 16 }} />
+            {c.rating}
+          </span>
           <span style={{ fontSize: "var(--fs-caption)", fontWeight: 800, color: "var(--cy)" }}>{c.priceLabel}</span>
         </div>
       </div>
@@ -319,7 +323,10 @@ function CloneListCard({ c, i, isSub, hasFree, cap, used, onProfile, onChat, onS
               ) : null}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{(c.tags || []).map((t) => <Tg key={t} label={t} />)}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 14, fontSize: "var(--fs-sm)", color: "var(--tx3)", fontFamily: "var(--mo)" }}>
-                <span style={{ color: "var(--go)" }}>★ {c.rating}</span>
+                <span style={{ color: "var(--go)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <StarIcon style={{ width: 16, height: 16 }} />
+                {c.rating}
+              </span>
                 <span>{c.docs ? `${c.docs}개 자료` : "자료 준비 중"}</span>
                 <span style={{ color: "var(--cy)" }}>{c.priceLabel}</span>
               </div>

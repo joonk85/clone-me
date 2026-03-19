@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CheckBadgeIcon, CheckCircleIcon, HandRaisedIcon } from "@heroicons/react/24/outline";
 
 import Bt from "../../common/Bt";
 import { ErrorBanner } from "../../common/UiStates";
@@ -120,10 +121,10 @@ export default function MasterVerify() {
     await load();
 
     if (m2?.is_verified) {
-      setOk("제출이 반영되었습니다. 인증 마스터 ✓ 배지가 켜졌습니다. 마켓·프로필에 반영되려면 목록을 새로고침하세요.");
+      setOk("제출이 반영되었습니다. 인증 마스터 검증 배지가 켜졌습니다. 마켓·프로필에 반영되려면 목록을 새로고침하세요.");
     } else {
       setOk(
-        "증빙은 저장되었습니다. ✓ 배지가 켜지지 않았다면 Supabase에서 docs/supabase/trigger_master_verification_auto_verify.sql 을 실행했는지 확인하세요."
+        "증빙은 저장되었습니다. 검증 배지가 켜지지 않았다면 Supabase에서 docs/supabase/trigger_master_verification_auto_verify.sql 을 실행했는지 확인하세요."
       );
     }
     window.dispatchEvent(new CustomEvent("clone-me-master-profile-changed"));
@@ -158,8 +159,14 @@ export default function MasterVerify() {
           <p style={{ fontSize: 12, color: "var(--tx2)", marginTop: 10, marginBottom: 0 }}>아직 노출 중인 배지가 없습니다.</p>
         )}
         <div style={{ marginTop: 14, fontSize: 11, color: "var(--tx3)", lineHeight: 1.65 }}>
-          <strong style={{ color: "var(--tx2)" }}>✓ 검증</strong> — 경력/자격 증빙 제출 시 자동 ·{" "}
-          <strong style={{ color: "var(--tx2)" }}>🤝 제휴</strong> — 운영자가 DB에서 부여 (
+          <strong style={{ color: "var(--tx2)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <CheckBadgeIcon style={{ width: 16, height: 16 }} />
+            검증
+          </strong> — 경력/자격 증빙 제출 시 자동 ·{" "}
+          <strong style={{ color: "var(--tx2)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <HandRaisedIcon style={{ width: 16, height: 16 }} />
+            제휴
+          </strong> — 운영자가 DB에서 부여 (
           <code style={{ fontSize: 10 }}>masters.is_affiliate = true</code>)
         </div>
       </div>
@@ -175,7 +182,7 @@ export default function MasterVerify() {
       >
         {master.is_verified ? (
           <>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
+            <div style={{ marginBottom: 8 }}><CheckCircleIcon style={{ width: 24, height: 24, color: "var(--gn)" }} /></div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gn)" }}>인증 마스터</div>
             <p style={{ fontSize: 13, color: "var(--tx2)", marginTop: 8, lineHeight: 1.6 }}>
               마켓·클론 카드에 검증 배지가 표시됩니다. 추가 서류는 아래에서 계속 제출할 수 있습니다.
@@ -183,7 +190,9 @@ export default function MasterVerify() {
           </>
         ) : (
           <>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--tx)", marginBottom: 8 }}>이력·자격 증빙 제출 → 즉시 ✓</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--tx)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            이력·자격 증빙 제출 → 즉시 검증
+          </div>
             <p style={{ fontSize: 13, color: "var(--tx2)", lineHeight: 1.6 }}>
               PDF 또는 이미지를 올리면 <strong style={{ color: "var(--gn)" }}>자동 승인</strong>되어 인증 배지가 켜집니다. (DB 트리거 적용 필요)
             </p>

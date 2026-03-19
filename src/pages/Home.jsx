@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 import Av from "../common/Av";
 import MasterBadges from "../common/MasterBadges";
@@ -333,8 +334,10 @@ export default function Home() {
     return (
       <div style={{ minHeight: "100%", ...pagePad }}>
         <div style={maxWGuest}>
-          {/* 히어로 — BETA 뱃지 · 그라디언트 타이틀 · cyan 글로우 */}
+          {/* 히어로 — BETA 뱃지 · 그라디언트 타이틀 · cyan 글로우 (비로그인 전용) */}
           <section
+            className="home-hero"
+            aria-label="메인 소개"
             style={{
               position: "relative",
               textAlign: "center",
@@ -546,7 +549,7 @@ export default function Home() {
                 }}
               >
                 {guestFeatured.map((c) => (
-                  <FeaturedCard key={c.id} c={c} layout="scroll" onClick={() => navigate(`/clone/${c.id}`)} />
+                  <FeaturedCard key={c.id} c={c} layout="scroll" onClick={() => navigate(`/chat/${c.id}`)} />
                 ))}
               </div>
             ) : (
@@ -558,7 +561,7 @@ export default function Home() {
                 }}
               >
                 {guestFeatured.map((c) => (
-                  <FeaturedCard key={c.id} c={c} layout="grid" onClick={() => navigate(`/clone/${c.id}`)} />
+                  <FeaturedCard key={c.id} c={c} layout="grid" onClick={() => navigate(`/chat/${c.id}`)} />
                 ))}
               </div>
             )}
@@ -808,7 +811,7 @@ export default function Home() {
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => navigate(`/clone/${c.id}`)}
+                    onClick={() => navigate(`/chat/${c.id}`)}
                     style={{
                       overflow: "hidden",
                       borderRadius: "var(--r-lg)",
@@ -946,7 +949,10 @@ export default function Home() {
                           {f.message || "(내용 없음)"}
                         </p>
                         {f.rating != null && (
-                          <p style={{ marginTop: 8, fontSize: "var(--fs-sm)", color: "var(--am)", fontFamily: "var(--mo)" }}>★ {f.rating}</p>
+                          <p style={{ marginTop: 8, fontSize: "var(--fs-sm)", color: "var(--am)", fontFamily: "var(--mo)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <StarIcon style={{ width: 16, height: 16 }} />
+                          {f.rating}
+                        </p>
                         )}
                       </Cd>
                     </li>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import Bt from "../common/Bt";
 import { ErrorBanner } from "../common/UiStates";
@@ -143,7 +144,7 @@ export default function MasterRegister() {
   if (step === 4) {
     return (
       <div style={{ minHeight: 520, padding: 24, maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
+        <div style={{ marginBottom: 16 }}><CheckCircleIcon style={{ width: 24, height: 24, color: "var(--gn)" }} /></div>
         <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>마스터 등록 완료</h1>
         <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 28, fontSize: 14 }}>
           {verifyPath === "later"
@@ -288,7 +289,7 @@ export default function MasterRegister() {
             >
               <div style={{ fontWeight: 800, marginBottom: 6 }}>인증 배지 · 나중에 제출</div>
               <div style={{ fontSize: 13, color: "var(--tx2)", lineHeight: 1.5 }}>
-                먼저 클론을 만들고, 마이페이지 → 인증 배지에서 경력·자격 서류를 올리면 검토 후 ✓ 배지가 붙습니다.
+                먼저 클론을 만들고, 마이페이지 → 인증 배지에서 경력·자격 서류를 올리면 검토 후 검증 배지가 붙습니다.
               </div>
             </button>
           </div>

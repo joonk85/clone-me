@@ -47,9 +47,11 @@ JS에서는 `useWindowSize().isMobile` (`width < 768`).
 ### 타이포
 | 변수 | 설명 |
 |------|------|
-| `--fn` | 본문 폰트 (Syne) |
-| `--mo` | 모노/라벨 (Space Mono) |
-| `--fs-xs` ~ `--fs-h1` | 스케일 |
+| `--fn` | 본문 폰트 (Pretendard Variable, -apple-system, sans-serif) |
+| `--fn-title` | 타이틀 폰트 (Syne 700·800) — h1~h4, `.font-title` |
+| `--mo` | 숫자·코드 (Space Mono) |
+| `--fs-xs` ~ `--fs-h1` | 크기 스케일: 12/14/16/18/24/32/48px |
+| `--lh` | 줄간격 1.5 |
 | `--fs-input-mobile` | **16px** — iOS 입력 줌 방지 |
 
 ### 레이아웃·간격
