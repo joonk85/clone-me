@@ -1,8 +1,18 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { INIT_MY_CLONES } from "../lib/mockData";
 
-// 앱 공유 상태 — 역할·선택 클론·구독·마이클론 등. Router와 함께 사용.
+const MASTER_MODE_KEY = "clone_me_master_mode";
+
+function readMasterMode() {
+  try {
+    const v = localStorage.getItem(MASTER_MODE_KEY);
+    if (v === "member" || v === "master") return v;
+  } catch (_) {}
+  return "member";
+}
+
+// 앱 공유 상태 — 역할·선택 클론·구독·마이클론·멤버/마스터 모드 등. Router와 함께 사용.
 const AppStateContext = createContext(null);
 
 export function AppStateProvider({ children }) {
@@ -14,6 +24,25 @@ export function AppStateProvider({ children }) {
   const [surveyDone, setSurveyDone] = useState([]);
   const [myClones, setMyClones] = useState(INIT_MY_CLONES);
   const [activeMyClone, setActiveMyClone] = useState(null);
+  const [masterMode, setMasterModeState] = useState(readMasterMode);
+
+  const setMasterMode = useCallback((mode) => {
+    if (mode !== "member" && mode !== "master") return;
+    setMasterModeState(mode);
+    try {
+      localStorage.setItem(MASTER_MODE_KEY, mode);
+    } catch (_) {}
+  }, []);
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === MASTER_MODE_KEY && (e.newValue === "member" || e.newValue === "master")) {
+        setMasterModeState(e.newValue);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const updateActiveMyClone = useCallback((fn) => {
     setMyClones((prev) => prev.map((c) => (c.id === activeMyClone?.id ? { ...c, ...fn(c) } : c)));
@@ -44,6 +73,8 @@ export function AppStateProvider({ children }) {
       setActiveMyClone,
       updateActiveMyClone,
       addMyClone,
+      masterMode,
+      setMasterMode,
     }),
     [
       role,
@@ -56,6 +87,8 @@ export function AppStateProvider({ children }) {
       activeMyClone,
       updateActiveMyClone,
       addMyClone,
+      masterMode,
+      setMasterMode,
     ]
   );
 
