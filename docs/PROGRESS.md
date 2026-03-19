@@ -5,6 +5,20 @@
 
 ---
 
+## 최근 반영 사항 (2026-03)
+
+| 항목 | 내용 | 참고 문서 |
+|------|------|-----------|
+| **채팅 UI** | Claude 스타일: 좌측 Rail(240px)·대화 목록·구독 클론, 상단 헤더(클론 아바타·배지·정보), 말풍선·출처(📄/📺 → Heroicons), 하단 입력 고정. 모바일 100dvh·햄버거 토글. | `docs/CHAT_SIDEBAR_SIDE_EFFECTS.md` |
+| **아이콘 통일** | `@heroicons/react` 도입. 이모지·버튼/배지 아이콘 → Heroicons(16/20/24px, currentColor). 빈 상태 일러스트 이모지는 유지. | `docs/HEROICONS_MIGRATION.md` |
+| **폰트·타이포** | 타이틀 Syne(700·800), 본문 Pretendard Variable + 시스템, 숫자/코드 Space Mono. 크기 12/14/16/18/24/32/48px, 줄간격 1.5. Nav 로고·h1~h4에 `--fn-title`. | `docs/FONT_EMOJI_SIDE_EFFECTS.md`, `docs/STYLE_GUIDE.md` |
+| **이모지 정리** | 버튼·배지·태그 이모지 → Heroicons 또는 텍스트. 빈 상태(EmptyPanel·Buyer·MasterProfile 샘플 없음)만 유지. | `docs/FONT_EMOJI_SIDE_EFFECTS.md` |
+| **홈 히어로** | Featured·Recommend 카드 링크 `/clone/:id` → `/chat/:id`. 히어로 섹션 `className="home-hero"`, `aria-label="메인 소개"`. 전역 스타일 충돌 방지 가이드. | `docs/HOME_HERO_SIDE_EFFECTS.md` |
+| **채팅 사이드바** | Rail·오버레이 Escape 키 닫기, `aria-label`·`aria-hidden` 보강. | `docs/CHAT_SIDEBAR_SIDE_EFFECTS.md` |
+| **마스터 등록 간소화** | `/master-register` 3단계 제거 → **단일 폼**(클론 이름·설명·컬러) → 제출 시 마스터(없으면 생성) + 클론 1개 생성 → 즉시 `/dashboard/:id`. 인증·자료는 대시보드·마이페이지에서 선택. | `docs/MASTER_REGISTER_SIDE_EFFECTS.md` |
+
+---
+
 ## Phase 1 완료 ✅
 
 - 폴더 구조 / Router / `ProtectedRoute` + **`PublicOnlyRoute`** (`/login`·`/signup`·`/signup/verified` — 로그인 시 `/` 리다이렉트)
@@ -26,8 +40,8 @@
 - **마이페이지** — `MyLayout` 헤더(아바타·닉네임·배지·토큰·⚙️)  
   - 멤버 탭: 프로필·토큰·구독·대화·마스터 유도  
   - 마스터 탭: 프로필·인증·내 클론·수익·단가·정산계좌 (`/my/master/*`)
-- **마스터 등록** `/master-register` — 3단계(기본정보·인증 선택·완료), URL **slug 입력·검증**, `masters` + `users.role`·`has_master_profile`
-- **클론 만들기** `/dashboard/create` — 3단계 마법사, **테마 컬러피커**, 토큰/턴, Supabase `clones` INSERT
+- **마스터 등록** `/master-register` — **간소화:** 클론 이름·설명·컬러만 입력 → 마스터(없으면 생성) + 클론 1개 생성 → 즉시 `/dashboard/:id` 이동. 인증/자료는 나중에(대시보드·마이페이지)
+- **클론 만들기** `/dashboard/create` — 추가 클론용 3단계(자료 → 클론 설정 → 출시). 마스터 없으면 `/master-register` 유도
 - **설정** `/my/settings` — 알림·로그아웃 (프로필은 `/my/profile`)
 - **토큰** `/my/tokens` — Mock 충전(DB·브라우저 폴백), 이용 내역·필터, `token_mock_purchase_rls.sql`
 - **프로필 사진** — Storage 버킷 `avatars`, `/my/profile` 업로드
@@ -122,3 +136,15 @@
 | 무거운 작업 | `@agents/BRAIN.md` `@docs/PROGRESS.md` `@docs/CLONE_ME_PRD_v4_2.md` |
 
 > PRD 파일명: 저장소 기준 `docs/CLONE_ME_PRD_v4_2.md` (v4.2). `docs/PRD_v4.2.md` 별칭이 필요하면 동일 내용으로 링크·복사.
+
+---
+
+## Side Effect 문서 (수정 전 참고)
+
+| 문서 | 대상 |
+|------|------|
+| `docs/HEROICONS_MIGRATION.md` | 아이콘 교체 시 매핑·대상 파일 |
+| `docs/FONT_EMOJI_SIDE_EFFECTS.md` | 폰트·이모지 변경 시 영향·순서 |
+| `docs/HOME_HERO_SIDE_EFFECTS.md` | 홈 히어로 수정 시 컴포넌트·CSS·네비 |
+| `docs/CHAT_SIDEBAR_SIDE_EFFECTS.md` | 채팅 UI·사이드바 수정 시 상태·API·레이아웃 |
+| `docs/MASTER_REGISTER_SIDE_EFFECTS.md` | 마스터 등록·클론 생성 플로우·DB |

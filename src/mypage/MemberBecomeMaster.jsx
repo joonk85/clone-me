@@ -56,12 +56,12 @@ export default function MemberBecomeMaster() {
       <p style={{ fontSize: 10, color: "var(--am)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 8 }}>CREATOR</p>
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12 }}>마스터로 참여하기</h2>
       <p style={{ color: "var(--tx2)", fontSize: 14, marginBottom: 20, lineHeight: 1.7 }}>
-        전문 지식을 클론으로 판매하고 토큰 수익을 받으세요. 마스터 등록 후 클론을 만들고 자료를 올리면 마켓에 노출됩니다.
+        전문 지식을 클론으로 판매하고 토큰 수익을 받으세요. 이름·설명·컬러만 입력하면 바로 대시보드로 이동하고, 자료·인증은 나중에 꾸미면 됩니다.
       </p>
       <ul style={{ color: "var(--tx2)", fontSize: 13, lineHeight: 1.8, marginBottom: 24, paddingLeft: 18 }}>
-        <li>마스터 프로필·slug 설정</li>
-        <li>클론 생성 및 학습 자료 업로드</li>
-        <li>토큰 단가·정산 계좌 관리</li>
+        <li>클론 이름·한 줄 설명·컬러만 입력 → 즉시 대시보드</li>
+        <li>자료 업로드·프로필 링크·소개글은 대시보드에서 (선택)</li>
+        <li>인증 배지는 마이페이지에서 나중에 제출 (선택)</li>
       </ul>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <Bt v="pr" on={() => navigate("/master-register")}>
