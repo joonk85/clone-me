@@ -47,6 +47,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <AppStateProvider>
+            <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             <Routes>
               <Route element={<Layout />}>
                 {/* 공개 */}
@@ -97,6 +98,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/404" replace />} />
               </Route>
             </Routes>
+            </div>
           </AppStateProvider>
         </AuthProvider>
       </BrowserRouter>

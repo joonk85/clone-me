@@ -1,28 +1,18 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
-import Nav from "../common/Nav";
-import { useWindowSize } from "../hooks/useWindowSize";
-import { shouldShowMobileTabBar } from "../lib/navShell";
+import AppShell from "../common/AppShell";
+import { PageTitleProvider } from "../contexts/PageTitleContext";
 
-// 레이아웃 — 상단 Nav + (모바일) 하단 탭바 여백 + Outlet
+// 레이아웃 — 항상 AppShell(rail + 헤더 + Outlet). 비로그인/로그인 동일 rail. 모바일: rail 오버레이, 하단 탭바 없음.
 
 export default function Layout() {
-  const { pathname } = useLocation();
-  const { isMobile } = useWindowSize();
-  const tabPad = isMobile && shouldShowMobileTabBar(pathname);
-
   return (
-    <>
-      <Nav />
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          paddingBottom: tabPad ? "calc(var(--nav-tabbar-h) + var(--safe-bottom))" : 0,
-        }}
-      >
-        <Outlet />
-      </div>
-    </>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, width: "100%" }}>
+      <PageTitleProvider>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </PageTitleProvider>
+    </div>
   );
 }

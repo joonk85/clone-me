@@ -130,14 +130,14 @@ h1,h2,h3,h4,.font-title{font-family:var(--fn-title);}
 /* 홈 비로그인 히어로 — 섹션 스코프 (Home.jsx .home-hero), 전역 토큰만 사용 */
 .home-hero{}
 
-/* 홈 비로그인 히어로 — 시안·퍼플 그라디언트 타이틀 (토큰만) */
+/* 홈 히어로 — white→cyan 그라디언트 타이틀 (토큰만) */
 .home-hero-gradient-title{
   font-family:var(--fn-title);
   font-weight:800;
   letter-spacing:-0.04em;
   line-height:1.06;
   font-size:clamp(1.7rem,6.2vw,2.35rem);
-  background:linear-gradient(102deg,var(--cy) 0%,var(--pu) 38%,var(--cy) 72%,var(--gn) 100%);
+  background:linear-gradient(102deg,#fff 0%,rgba(255,255,255,0.85) 25%,var(--cy) 70%,var(--cy) 100%);
   -webkit-background-clip:text;
   background-clip:text;
   -webkit-text-fill-color:transparent;

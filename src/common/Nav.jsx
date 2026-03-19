@@ -6,7 +6,7 @@ import { shouldShowMobileTabBar } from "../lib/navShell";
 
 const items = [
   { path: "/", l: "홈", short: "홈" },
-  { path: "/market", l: "마켓", short: "마켓" },
+  { path: "/market", l: "탐색", short: "탐색" },
   { path: "/my", l: "마이", short: "마이" },
 ];
 

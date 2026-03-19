@@ -81,4 +81,5 @@
 
 - **Featured·Recommend 카드 링크:** `navigate(\`/clone/${c.id}\`)` → `navigate(\`/chat/${c.id}\`)` (§5 반영).
 - **히어로 섹션:** 첫 번째 `<section>`에 `className="home-hero"`, `aria-label="메인 소개"` 적용. `globalCss.js`에 `.home-hero` 스코프 플레이스홀더 추가.
+- **홈 통일 (2026-03):** 로그인/비로그인 동일 히어로. 상단 뱃지 "지식 클론 플랫폼 · 한국 최초 · BETA", 타이틀 "내 지식의 클론을 만드세요" (white→cyan 그라디언트), 서브텍스트 한 줄, CTA "전문가 클론 탐색 →" / "내 클론 만들기", 통계 바, 다크+cyan radial 배경. auth 로딩 중에도 히어로 즉시 표시(스피너 제거). 로그인 시 히어로 아래 토큰 카드·최근 대화 섹션 추가(멤버/마스터 공통). `globalCss.js` `.home-hero-gradient-title` white→cyan 그라디언트 적용.
 - **추가 디자인 변경**(문구·레이아웃·CTA 등)은 위 1~4 순서대로 진행하면 됨.

@@ -21,13 +21,11 @@ import Pb from "../common/Pb";
 import { useAuth } from "../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 import {
-  fetchClonesByIdsForRail,
-  fetchConversationsForChatRail,
   fetchMessagesForConversation,
 } from "../lib/supabaseQueries";
+import { useAppRail } from "../contexts/AppRailContext";
+import { usePageTitle } from "../contexts/PageTitleContext";
 import { FREE_BASE, FREE_BONUS, MONTHLY_CAP } from "../lib/tokens";
-import { CLONES_MARKET } from "../lib/mockData";
-
 import "./chat-claude.css";
 
 function pickMarketingLink(userMsg, answer, links, freq) {
@@ -67,22 +65,6 @@ function formatSourceLine(s) {
   return { type: "doc", text: `${name}${page}${sec}` };
 }
 
-function formatRailDate(iso) {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    const now = new Date();
-    const sameDay =
-      d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-    if (sameDay) {
-      return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
-    }
-    return `${d.getMonth() + 1}/${d.getDate()}`;
-  } catch {
-    return "";
-  }
-}
-
 export default function Chat({
   clone,
   subscribed,
@@ -95,6 +77,8 @@ export default function Chat({
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { setPageTitle } = usePageTitle();
+  const { refreshRail } = useAppRail();
   const convFromUrl = searchParams.get("conv") || "";
   const themeColor = clone.color || "#63d9ff";
 
@@ -124,9 +108,6 @@ export default function Chat({
   const [surveyAns, setSurveyAns] = useState(qs.map(() => ""));
   const [conversationId, setConversationId] = useState(null);
   const [marketingLinks, setMarketingLinks] = useState([]);
-  const [railOpen, setRailOpen] = useState(false);
-  const [convRailList, setConvRailList] = useState([]);
-  const [railSubs, setRailSubs] = useState([]);
   const [infoOpen, setInfoOpen] = useState(false);
   const [convLoading, setConvLoading] = useState(false);
   const bot = useRef(null);
@@ -163,30 +144,10 @@ export default function Chat({
     };
   }, [clone.id, isDbClone, clone.products, clone.links]);
 
-  const refreshRail = useCallback(async () => {
-    if (!isDbClone || !user) {
-      setConvRailList([]);
-      setRailSubs([]);
-      return;
-    }
-    const sb = getSupabaseBrowserClient();
-    if (!sb) return;
-    const { list: convs } = await fetchConversationsForChatRail(sb, user.id, 35);
-    setConvRailList(convs || []);
-    const { list: subRows } = await fetchClonesByIdsForRail(sb, subscribed);
-    const byId = Object.fromEntries((subRows || []).map((r) => [r.id, r]));
-    const merged = (subscribed || []).map((id) => {
-      if (byId[id]) return { id, ...byId[id] };
-      const m = CLONES_MARKET.find((c) => c.id === id);
-      if (m) return { id, name: m.name, color: m.color, av: m.av };
-      return { id, name: "클론", color: "#63d9ff", av: "?" };
-    });
-    setRailSubs(merged);
-  }, [isDbClone, user, subscribed]);
-
   useEffect(() => {
-    refreshRail();
-  }, [refreshRail]);
+    setPageTitle(clone.name || "대화");
+    return () => setPageTitle(null);
+  }, [clone.name, setPageTitle]);
 
   useEffect(() => {
     if (!isDbClone || !user || !convFromUrl) {
@@ -242,20 +203,6 @@ export default function Chat({
       cancelled = true;
     };
   }, [convFromUrl, clone.id, clone.welcomeMsg, clone.name, isDbClone, user, navigate, setSearchParams]);
-
-  const startNewChat = useCallback(() => {
-    setSearchParams({}, { replace: true });
-    setConversationId(null);
-    setRailOpen(false);
-    setMsgs([
-      {
-        r: "a",
-        t: clone.welcomeMsg || `안녕하세요! ${clone.name}의 AI 클론입니다.`,
-        sources: [],
-      },
-    ]);
-    if (!svd) setSurveyStep("intro");
-  }, [clone.welcomeMsg, clone.name, setSearchParams, svd]);
 
   useEffect(() => {
     bot.current?.scrollIntoView({ behavior: "smooth" });
@@ -518,8 +465,6 @@ export default function Chat({
     );
   };
 
-  const showRail = isDbClone && !!user;
-
   return (
     <div
       style={{
@@ -537,98 +482,10 @@ export default function Chat({
           ["--chat-accent"]: themeColor,
         }}
       >
-        {showRail && (
-          <>
-            <button
-              type="button"
-              className="chat-claude-rail-overlay"
-              data-open={railOpen ? "true" : "false"}
-              onClick={() => setRailOpen(false)}
-              onKeyDown={(e) => e.key === "Escape" && setRailOpen(false)}
-              aria-label="사이드 패널 닫기"
-              aria-hidden={!railOpen}
-            />
-            <aside
-              className="chat-claude-rail"
-              data-open={railOpen ? "true" : "false"}
-              aria-label="대화 목록"
-              onKeyDown={(e) => e.key === "Escape" && setRailOpen(false)}
-            >
-              <div className="chat-claude-rail-new">
-                <button type="button" className="chat-claude-rail-new-btn" onClick={startNewChat}>
-                  <span style={{ fontSize: 18, fontWeight: 300, lineHeight: 1 }} aria-hidden>
-                    +
-                  </span>
-                  새 대화
-                </button>
-              </div>
-              <div className="chat-claude-rail-scroll">
-                <div className="chat-claude-rail-section-label">대화 기록</div>
-                {convRailList.length === 0 && (
-                  <div style={{ padding: "12px 10px", fontSize: 11, color: "var(--tx3)", fontFamily: "var(--fn)" }}>
-                    저장된 대화가 없습니다. 대화를 시작하면 여기에 표시됩니다.
-                  </div>
-                )}
-                {convRailList.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="chat-claude-rail-item"
-                    data-active={c.id === convFromUrl && c.clone_id === clone.id ? "true" : "false"}
-                    onClick={() => {
-                      navigate(`/chat/${c.clone_id}?conv=${c.id}`);
-                      setRailOpen(false);
-                    }}
-                  >
-                    <div className="chat-claude-rail-item-title">
-                      <Av char={c.av || "?"} color={c.color} size={22} />
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.cloneName}</span>
-                    </div>
-                    <div className="chat-claude-rail-item-preview">{c.preview}</div>
-                    <div className="chat-claude-rail-item-date">{formatRailDate(c.updated_at)}</div>
-                  </button>
-                ))}
-              </div>
-              <div className="chat-claude-rail-subs">
-                <div className="chat-claude-rail-section-label">구독 중인 클론</div>
-                {railSubs.length === 0 && (
-                  <div style={{ padding: "8px 10px", fontSize: 11, color: "var(--tx3)" }}>구독 중인 클론이 없습니다</div>
-                )}
-                {railSubs.map((s) => (
-                  <Link
-                    key={s.id}
-                    to={`/chat/${s.id}`}
-                    className="chat-claude-rail-sub-item"
-                    onClick={() => setRailOpen(false)}
-                    style={s.id === clone.id ? { background: "var(--sf3)", border: "1px solid var(--br2)" } : undefined}
-                  >
-                    <Av char={s.av || "?"} color={s.color || "#63d9ff"} size={26} />
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </aside>
-          </>
-        )}
-
         <div className="chat-claude-main">
           <header className="chat-claude-header" style={{ position: "relative", paddingTop: 4 }}>
             <div className="chat-claude-header-accent" />
             <div className="chat-claude-header-inner">
-              {showRail && (
-                <button
-                  type="button"
-                  className="chat-claude-hamburger"
-                  onClick={() => setRailOpen((o) => !o)}
-                  aria-label="대화 목록"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="4" y1="6" x2="20" y2="6" />
-                    <line x1="4" y1="12" x2="20" y2="12" />
-                    <line x1="4" y1="18" x2="20" y2="18" />
-                  </svg>
-                </button>
-              )}
               <Av char={clone.av || "?"} color={themeColor} size={36} />
               <div className="chat-claude-header-meta">
                 <div className="chat-claude-header-row">
