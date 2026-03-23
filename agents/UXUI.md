@@ -41,7 +41,7 @@ src/components/common/
 - **General** (`/my/general`): **General Settings** — 좌 아바타+**CHANGE AVATAR**, 우 **DISPLAY NAME**·**UNIQUE HANDLE**, **PROFILE BIO**(500자·`N / 500 characters`) · **ACCOUNT INFO**(이메일·가입일·가입 경로·계정 ID, 이메일 수정은 Security 링크) · 하단 **Reset to Defaults** / **Cancel** / **Save Changes**. (SNS 필드 UI 제거, DB 값은 유지)
 - **Subscription & Usage** (`/my/subscription`): 탭 **[Current] [Upgrade]** — Current: **ACCOUNT STATUS** + **TOKEN CONSUMPTION**(링·바·USED/ALLOCATED/EST.RESET)·**Usage History** 테이블·VIEW MORE·Export CSV(Mock). Upgrade: 4플랜 카드·Pro **RECOMMENDED**·Mock `setPlanMock`. (TokenShop은 이 페이지에서 제거)
 - **모바일**: **← 홈으로** 항상 + 상단 가로 탭(동일 메뉴 + Master AI).
-- **우측**: 선택 메뉴별 페이지(`MyAccount*`). 마스터 스튜디오는 **`/my/master/*`** (기존 상단 탭만 유지).
+- **우측**: 선택 메뉴별 페이지(`MyAccount*`). 마스터 스튜디오는 **`/my/master/*`** 에서 데스크톱 **좌측 fixed 마스터 레일 + 우측 콘텐츠**, 모바일 상단 탭.
 - **`/settings`** → `/my/general` 리다이렉트.
 
 ### 마스터 탐색 `/market`
@@ -52,7 +52,7 @@ src/components/common/
 
 ### 플랫폼 요금제 `/pricing`
 - 비로그인 접근 가능 · 로그인 시 **현재 플랜** 강조 · Free CTA **시작하기** / 유료 **구독하기 (Mock)** · 연간 −20% 토글
-- 레일·앱 헤더: 토큰 잔액 옆 **플랜 뱃지** · Free면 **업그레이드** → `/pricing`
+- 앱 **상단 헤더**(멤버 모드): 토큰 잔액·**플랜 뱃지** · Free면 **업그레이드** → `/pricing` (Left Rail 하단에는 미표시)
 - 채팅·클론 정보: **N토큰/턴 · 약 ₩…/턴** (1토큰=₩100 참고)
 
 ### 빈 상태 (Empty State)

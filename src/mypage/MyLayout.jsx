@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useWindowSize } from "../hooks/useWindowSize";
 import { getSupabaseBrowserClient } from "../lib/supabase";
-import { fetchMyUserRow } from "../lib/supabaseQueries";
+import { fetchClonesForMaster, fetchMasterForUser, fetchMyUserRow } from "../lib/supabaseQueries";
 
 const MASTER_TABS = [
   { to: "/my/master/profile", end: true, l: "프로필" },
@@ -42,25 +42,58 @@ function masterTabStyle({ isActive }) {
   };
 }
 
-/** 마스터 스튜디오 (/my/master/*) — 기존 상단 탭만 유지 */
+/** 마스터 스튜디오 (/my/master/*) — 데스크톱 좌측 고정 레일 + 우측 콘텐츠 */
 export function MasterStudioChrome() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { isMobile } = useWindowSize();
   const { pathname } = useLocation();
   const padX = "max(var(--page-pad-x), var(--safe-left))";
   const padR = "max(var(--page-pad-x), var(--safe-right))";
-  const wideClones = pathname.startsWith("/my/master/clones");
-  const contentMax = wideClones ? 1180 : 960;
+  const SIDEBAR_W = 268;
+  const [masterClones, setMasterClones] = useState([]);
+
+  const loadMasterClones = useCallback(async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !user?.id) {
+      setMasterClones([]);
+      return;
+    }
+    const { row: m } = await fetchMasterForUser(supabase);
+    if (!m?.id) {
+      setMasterClones([]);
+      return;
+    }
+    const { rows } = await fetchClonesForMaster(supabase, m.id);
+    setMasterClones(rows || []);
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadMasterClones();
+  }, [loadMasterClones]);
 
   return (
-    <div style={{ minHeight: "60vh", paddingBottom: "calc(24px + var(--safe-bottom))", background: "var(--bg)" }}>
-      <div
-        style={{
-          borderBottom: "1px solid var(--br)",
-          background: "var(--sf2)",
-          padding: `12px ${padX} 12px ${padR}`,
-        }}
-      >
-        <div style={{ maxWidth: contentMax, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
+    <>
+      {!isMobile ? (
+        <aside
+          aria-label="마스터 스튜디오 메뉴"
+          style={{
+            position: "fixed",
+            left: 0,
+            top: 0,
+            height: "100dvh",
+            width: SIDEBAR_W,
+            zIndex: 200,
+            overflowY: "auto",
+            WebkitOverflowScrolling: "touch",
+            boxSizing: "border-box",
+            padding: "calc(var(--safe-top) + 16px) 16px calc(20px + var(--safe-bottom)) 16px",
+            background: "var(--sf)",
+            borderRight: "1px solid var(--br)",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Link
             to="/my/general"
             style={{
@@ -69,41 +102,91 @@ export function MasterStudioChrome() {
               textDecoration: "none",
               fontFamily: "var(--fn)",
               fontWeight: 600,
+              marginBottom: 18,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
             ← 멤버 계정
           </Link>
-          <p
-            style={{
-              fontSize: "var(--fs-xs)",
-              color: "var(--tx3)",
-              fontFamily: "var(--mo)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              margin: 0,
-              fontWeight: 600,
-            }}
-          >
-            마스터 스튜디오
-          </p>
-        </div>
-        <div
-          className="nav-scroll"
-          style={{ maxWidth: contentMax, margin: "12px auto 0", paddingLeft: padX, paddingRight: padR, overflowX: "auto", WebkitOverflowScrolling: "touch" }}
-        >
-          <div style={{ display: "flex", gap: 6, paddingBottom: 2 }}>
+          <p style={{ fontSize: 10, fontFamily: "var(--mo)", letterSpacing: "0.14em", color: "var(--tx3)", fontWeight: 700, marginBottom: 10 }}>MASTER STUDIO</p>
+          <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {MASTER_TABS.map((t) => (
-              <NavLink key={t.to} to={t.to} end={t.end} style={masterTabStyle}>
+              <NavLink key={t.to} to={t.to} end={t.end} style={navItemStyle}>
                 {t.l}
               </NavLink>
             ))}
+          </nav>
+          <div style={{ height: 1, background: "var(--br)", margin: "18px 0 14px" }} />
+          <p style={{ fontSize: 10, fontFamily: "var(--mo)", letterSpacing: "0.12em", color: "var(--tx3)", fontWeight: 700, marginBottom: 8 }}>내 클론</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {masterClones.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/create")}
+                style={{ ...navItemStyle({ isActive: false }), width: "100%", textAlign: "left", cursor: "pointer", border: "1px solid var(--br2)", background: "var(--sf2)" }}
+              >
+                + 새 클론 만들기
+              </button>
+            ) : (
+              masterClones.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => navigate(`/dashboard/${c.id}`)}
+                  style={{
+                    ...navItemStyle({ isActive: pathname === `/dashboard/${c.id}` }),
+                    width: "100%",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    border: "1px solid var(--br)",
+                    background: pathname === `/dashboard/${c.id}` ? "var(--cyd)" : "var(--sf2)",
+                    display: "block",
+                  }}
+                  title={c.name || "클론"}
+                >
+                  <span style={{ display: "block", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name || "클론"}</span>
+                  <span style={{ display: "block", marginTop: 4, fontSize: 10, color: c.is_active ? "var(--cy)" : "var(--tx3)", fontFamily: "var(--mo)" }}>
+                    {c.is_active ? "Operating" : "Inactive"}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
+      ) : (
+        <div style={{ borderBottom: "1px solid var(--br)", background: "var(--sf2)", padding: `12px ${padX} 12px ${padR}` }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+            <Link
+              to="/my/general"
+              style={{
+                fontSize: "var(--fs-caption)",
+                color: "var(--tx2)",
+                textDecoration: "none",
+                fontFamily: "var(--fn)",
+                fontWeight: 600,
+              }}
+            >
+              ← 멤버 계정
+            </Link>
+            <p style={{ margin: 0, fontSize: "var(--fs-xs)", fontFamily: "var(--mo)", color: "var(--tx3)", letterSpacing: "0.1em" }}>MASTER STUDIO</p>
+          </div>
+          <div className="nav-scroll" style={{ marginTop: 10, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <div style={{ display: "flex", gap: 6, paddingBottom: 2 }}>
+              {MASTER_TABS.map((t) => (
+                <NavLink key={t.to} to={t.to} end={t.end} style={masterTabStyle}>
+                  {t.l}
+                </NavLink>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-      <div style={{ padding: `${isMobile ? 16 : 24}px ${padX} 40px ${padR}`, maxWidth: contentMax, margin: "0 auto" }}>
+      )}
+      <div style={{ padding: `${isMobile ? 16 : 24}px ${padX} 40px ${padR}`, maxWidth: 1180, margin: "0 auto" }}>
         <Outlet />
       </div>
-    </div>
+    </>
   );
 }
 

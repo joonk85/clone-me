@@ -84,6 +84,10 @@ JS에서는 `useWindowSize().isMobile` (`width < 768`).
 ### 마스터 클론 목록 (`/my/master/clones`)
 - 상태 뱃지: **Operating** `var(--cy)`/`var(--cyd)` · **Idle** `var(--am)`/`var(--am-surface)` · **Inactive** `var(--tx3)`/`var(--sf3)`.
 - 테이블 헤더 모노 캡션 스타일, 진행 바 `var(--market-gauge-cyan)`. Side effects: `docs/MASTER_CLONES_LIST_SIDE_EFFECTS.md`
+- 마스터 스튜디오 데스크톱은 **좌측 fixed 레일(268px) + 우측 콘텐츠**(멤버 계정 허브와 동일 공간 규칙). **앱 Left Rail**(일반 셸) 하단에는 토큰·플랜 pill을 두지 않음 — **헤더(멤버)·설정**에서 표시.
+
+### 앱 Left Rail (`AppShell`)
+- **역할:** 로고·네비·대화 목록·하단 **계정 드롭업**만. 토큰 숫자·플랜 뱃지는 **상단 헤더**(멤버 모드) 또는 **`/settings`**.
 
 ### 마이 계정 General (`/my/general`)
 - **General Settings** — 라벨 `DISPLAY NAME` 등은 영문(모노 상단 캡션 스타일), 본문·ACCOUNT INFO는 한국어.

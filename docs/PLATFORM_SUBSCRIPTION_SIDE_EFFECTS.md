@@ -25,7 +25,7 @@
 | `src/lib/tokenPricing.js` | `TOKEN_KRW_REF`(100)·`buildClonePriceLabel`·원화/턴 안내 |
 | `src/contexts/PlatformSubscriptionContext.jsx` | `planId`·`setPlanMock`·`isPaid` |
 | `src/App.jsx` | `PlatformSubscriptionProvider`(Auth 하위)·`/pricing` 라우트 |
-| `src/common/AppShell.jsx` | 헤더·레일: 토큰 옆 플랜 뱃지·Free 시 **업그레이드** → `/pricing` |
+| `src/common/AppShell.jsx` | **상단 헤더**(멤버 모드): 토큰·플랜 뱃지·Free 시 **업그레이드** → `/pricing`. **Left Rail 하단**에는 토큰/플랜 미표시(레일은 네비·계정 드롭업 중심). |
 | `src/mypage/MyLayout.jsx` | 마이 헤더: 토큰 옆 플랜 뱃지·업그레이드 |
 | `src/member/Chat.jsx` · `src/routes/ChatPage.jsx` | 클론별 `N토큰/턴 · 약 ₩…/턴` 표시 |
 | `src/mypage/master/MasterPricing.jsx` | 턴당 토큰 입력 시 원화 참고 문구 |

@@ -16,6 +16,14 @@ const COLOR_PRESETS = ["#63d9ff", "#c4b5fd", "#4fffb0", "#ffb347", "#ff4f6d", "#
 
 // 신규 클론 — 자료(선택) → 이름·테마색·토큰단가 → Supabase 저장 + 대시보드 연동
 
+function toCreateCloneErrorMessage(error) {
+  const msg = error?.message || "";
+  if (/row-level security|violates row-level security policy/i.test(msg)) {
+    return 'DB 권한 정책(RLS) 때문에 클론 생성이 차단되었습니다. Supabase SQL Editor에서 `docs/supabase/fix_clones_insert_rls.sql` 을 실행해 주세요.';
+  }
+  return msg || "저장에 실패했습니다.";
+}
+
 export default function Create() {
   const navigate = useNavigate();
   const { addMyClone, setActiveMyClone } = useAppState();
@@ -103,7 +111,7 @@ export default function Create() {
 
       setBusy(false);
       if (error) {
-        setErr(error.message || "저장에 실패했습니다.");
+        setErr(toCreateCloneErrorMessage(error));
         return;
       }
       const id = data.id;

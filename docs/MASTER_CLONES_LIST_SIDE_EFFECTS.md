@@ -5,7 +5,7 @@
 ## 레이아웃
 
 - **앱 Rail (마스터 모드):** **홈** 아래 **`클론 목록`** 항목 추가 → `/my/master/clones` (`AppShell.jsx`). 기존 개별 클론 → `/dashboard/:id` 유지.
-- **마스터 스튜디오 크롬:** `/my/master/clones` 일 때 콘텐츠 **max-width 1180px** (`MyLayout.jsx` `MasterStudioChrome`).
+- **마스터 스튜디오 크롬:** `/my/master/*` 데스크톱은 **fixed 좌측 레일(268px)** + 우측 콘텐츠. `/my/master/clones` 는 우측 콘텐츠 **max-width 1180px**.
 - **페이지 상단 바:** 검색(이름·UUID) · 토큰 링(`TokenRingGauge`)·`/my/subscription` · 알림 · 계정(`fetchMyUserRow` 아바타).
 - **헤더:** 타이틀 **내 클론** · 통계 카드 **TOTAL ACTIVE** (`is_active`) · **이번 달 대화** (월간 메시지 수 합계).
 - **테이블(데스크톱):** CLONE NAME(아바타·이름·id) · STATUS 뱃지 · 이번 달 대화 · 총 유저(distinct `conversations.user_id`) · 마지막 업데이트 · ACTIONS(대시보드/설정/테스트 아이콘 → 모두 `/dashboard/:id` + `myClones` 동기화).

@@ -436,14 +436,14 @@ export default function Market() {
           zIndex: 30,
           paddingLeft: padX,
           paddingRight: padR,
-          paddingBottom: 12,
-          paddingTop: "calc(var(--safe-top) + 10px)",
+          paddingBottom: 8,
+          paddingTop: "calc(var(--safe-top) + 6px)",
           background: "linear-gradient(180deg, var(--market-page-bg) 88%, transparent 100%)",
           borderBottom: "1px solid var(--br)",
           backdropFilter: "blur(12px)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 1200, margin: "0 auto" }}>
           {isMobile ? (
             <button
               type="button"
@@ -477,7 +477,7 @@ export default function Market() {
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                padding: "10px 16px",
+                padding: "8px 14px",
                 borderRadius: 999,
                 border: "1px solid var(--br2)",
                 background: "var(--sf2)",
@@ -504,23 +504,15 @@ export default function Market() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 12, flexShrink: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <TokenRingGauge percent={gaugePct} tone={gaugeTone} size={isMobile ? "md" : "lg"} />
-              <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-                <span style={{ fontSize: isMobile ? "var(--fs-caption)" : "var(--fs-body)", fontWeight: 800, fontFamily: "var(--mo)", color: "var(--tx)" }}>
-                  {user ? `${tokenTotal.toLocaleString()} Tokens` : "—"}
-                </span>
-                <span style={{ fontSize: 10, fontFamily: "var(--mo)", color: "var(--tx3)", letterSpacing: "0.08em", fontWeight: 600 }}>AVAILABLE BALANCE</span>
-              </div>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexShrink: 0 }}>
+            <TokenRingGauge percent={gaugePct} tone={gaugeTone} size="md" />
             <button
               type="button"
               aria-label="알림 설정"
               onClick={() => navigate(user ? "/my/notifications" : "/login")}
               style={{
-                width: "var(--touch-min)",
-                height: "var(--touch-min)",
+                width: isMobile ? "var(--touch-min)" : 40,
+                height: isMobile ? "var(--touch-min)" : 40,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -538,8 +530,8 @@ export default function Market() {
               aria-label={user ? "마이페이지" : "로그인"}
               onClick={() => navigate(user ? "/my" : "/login")}
               style={{
-                width: "var(--touch-min)",
-                height: "var(--touch-min)",
+                width: isMobile ? "var(--touch-min)" : 40,
+                height: isMobile ? "var(--touch-min)" : 40,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

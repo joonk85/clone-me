@@ -15,14 +15,14 @@
 | `/my/tokens` (+ `/tokens/history`) | → `/my/subscription` |
 | `/my/settings` | → `/my/general` |
 | `/settings` | `Settings` → **`Navigate` `/my/general`** (북마크 호환) |
-| `/my/master/*` | `MasterStudioChrome` + 기존 마스터 탭(프로필·인증·…) — **앱 Rail도 숨김**, `main` 좌측 마진 0 |
+| `/my/master/*` | `MasterStudioChrome` — **앱 Rail 숨김 + 마스터 전용 fixed 좌측 레일(268px)** + 우측 콘텐츠 |
 
 ## 레이아웃
 
 ### `AppShell.jsx`
 
 - `pathname.startsWith("/my")` → **`hideAppRail`**: 기본 앱 Rail `<aside>` **미렌더**.
-- 데스크톱 **`main` `marginLeft`**: `/my` 이고 **`/my/master` 아님** → **268px** (`MY_ACCOUNT_SIDEBAR_W`). `/my/master/*` → **0**.
+- 데스크톱 **`main` `marginLeft`**: `/my/member` → **268px** (`MY_ACCOUNT_SIDEBAR_W`), `/my/master/*` → **268px** (`MASTER_STUDIO_SIDEBAR_W`).
 - 모바일: 레일 오버레이·햄버거(메뉴 열기)는 **`!hideAppRail`** 일 때만.
 - `/my` 진입 시 **`setRailOpen(false)`** 로 이전에 열린 레일 상태 정리.
 
@@ -32,6 +32,12 @@
 - 상단 **「← 홈으로」** (`/`). 섹션 **USER ACCOUNT** → **General / Security / Subscription & Usage / Notifications** → **구분선** → **Go to My Master AI**.
 - 모바일: 상단 **「← 홈으로」** + 가로 스크롤 탭(동일 4항목 + Master AI 버튼).
 - 사이드 하단 아바타·플랜·「내 클론 만들기」 블록은 **제거**(콘텐츠는 각 페이지에서 관리).
+
+### `MyLayout.jsx` — `MasterStudioChrome`
+
+- 데스크톱: 마스터 전용 **fixed 좌측 레일(268px)** — `MASTER STUDIO` 탭(프로필·인증·내 클론·수익·단가·정산) + **내 클론 목록(버튼)**.
+- 레일에서 내 클론 클릭 시 **`/dashboard/:cloneId`** 로 이동(우측 상세 대시보드).
+- 모바일: 기존처럼 상단 탭 유지.
 
 ## DB (선택)
 

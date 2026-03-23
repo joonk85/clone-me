@@ -85,7 +85,7 @@ TOP_K_CHUNKS = 5    // 답변 시 참조 청크 수
 ## 비즈니스 결정사항
 
 ### 계정 구조 (에어비앤비 모델)
-- 멤버로 가입 → 마이페이지에서 마스터 등록 → **마스터 스튜디오**는 상단 버튼·`/my/master/*` (멤버 탭에서 별도「마스터 스튜디오」탭 없음). 마스터 모드 앱 Rail에 **클론 목록**(`/my/master/clones`) — 클론 테이블·통계·`/dashboard/:id` 연동.
+- 멤버로 가입 → 마이페이지에서 마스터 등록 → **마스터 스튜디오** ` /my/master/*` 는 **fixed 좌측 마스터 레일 + 우측 콘텐츠**. 레일에서 **내 클론 클릭 → `/dashboard/:id` 상세** 연동.
 - 마이 **멤버 계정 허브** `/my/*`: **`/my` 진입 시 앱 Left Rail 숨김**, 좌측 **fixed 계정 메뉴(268px)** 가 대체 — **General**(**General Settings**: 프로필 폼·읽기 전용 계정 정보·Reset/Cancel/Save) · **Security**(**Security Control**: 비밀번호·활성 세션·로컬 보안 로그·계정 삭제) · **Subscription & Usage**(**Current/Upgrade** 탭·계정/토큰 카드·이용 테이블·Mock 빌링·플랜 카드) · **Notifications** · **Go to My Master AI** → `/my/master/*`. **`/settings`** 는 `/my/general` 로 리다이렉트.
 - 소셜 로그인 없음 (법인 미설립)
 
@@ -102,7 +102,7 @@ TOP_K_CHUNKS = 5    // 답변 시 참조 청크 수
 - 멤버는 **보유 토큰으로 어떤 마스터 클론과도 대화** 가능 (클론별 별도 월 구독 불필요)
 - **클론마다 1턴당 토큰 소모량은 마스터 설정** (최소 `MIN_TOKEN_PRICE`). 마스터 클론 설정 UI에 **원화 환산 안내** 표시 — 예: **3토큰/턴 ≈ 약 ₩300/턴** (`1토큰 = ₩100` 기준, `TOKEN_KRW_REF`)
 - 토큰 **소진 시 추가 충전** 가능 (기존 토큰 패키지·TokenShop Mock 등)
-- 공개 페이지 **`/pricing`**: 플랜 4종 비교·연간 20% 표시·Mock 저장(localStorage). 앱 **레일·상단 헤더**에 현재 플랜 뱃지 + Free일 때 **업그레이드** CTA
+- 공개 페이지 **`/pricing`**: 플랜 4종 비교·연간 20% 표시·Mock 저장(localStorage). 앱 **상단 헤더**(멤버 모드)에 플랜 뱃지 + Free일 때 **업그레이드** CTA — **Left Rail 하단**에는 토큰/플랜 뱃지 없음 (`/settings`·구독 섹션으로 일원화)
 
 ### 토큰 (충전·차감)
 - 충전: 50T/₩5,000 · 110T/₩10,000 · 350T/₩30,000 (패키지 예시, PRD와 동기)

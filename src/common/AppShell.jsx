@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowPathIcon,
   Bars3Icon,
+  BellIcon,
   ChartBarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -16,6 +17,7 @@ import {
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 import Av from "./Av";
+import TokenRingGauge from "./TokenRingGauge";
 import { useAuth } from "../contexts/AuthContext";
 import { usePlatformSubscription } from "../contexts/PlatformSubscriptionContext";
 import { useAppState } from "../contexts/AppStateContext";
@@ -91,6 +93,15 @@ function readCollapsed() {
   }
 }
 
+function tokenGaugeFromBalance(total, planMonthly) {
+  const denom = planMonthly > 0 ? planMonthly : Math.max(50, total || 50);
+  const percent = Math.min(100, Math.round((total / denom) * 100));
+  let tone = "cyan";
+  if (total <= 0) tone = "red";
+  else if (total < 15) tone = "amber";
+  return { percent, tone };
+}
+
 export default function AppShell({ children }) {
   const { user } = useAuth();
   const { planId, plan: platformPlan, refreshPlan } = usePlatformSubscription();
@@ -161,13 +172,17 @@ export default function AppShell({ children }) {
   /** /my/* 에서 기본 앱 Rail 숨김 — 멤버 계정 사이드가 동일 자리(폭) 사용 */
   const hideAppRail = pathname.startsWith("/my");
   const isMyMemberAccount = pathname.startsWith("/my") && !pathname.startsWith("/my/master");
+  const isMyMasterStudio = pathname.startsWith("/my/master");
   const MY_ACCOUNT_SIDEBAR_W = 268;
+  const MASTER_STUDIO_SIDEBAR_W = 268;
   const mainMarginLeft = isMobile
     ? 0
     : hideAppRail
       ? isMyMemberAccount
         ? MY_ACCOUNT_SIDEBAR_W
-        : 0
+        : isMyMasterStudio
+          ? MASTER_STUDIO_SIDEBAR_W
+          : 0
       : railWidth;
 
   useEffect(() => {
@@ -192,6 +207,10 @@ export default function AppShell({ children }) {
 
   const isMarketPage = pathname === "/market";
   const isActive = (path) => pathname === path || (path !== "/" && pathname.startsWith(path));
+  const masterHomePath = "/my/master";
+  const defaultHomePath = isMaster && masterMode === "master" ? masterHomePath : "/";
+  const isMemberHome = pathname === "/" && masterMode !== "master";
+  const { percent: memberHomeGaugePct, tone: memberHomeGaugeTone } = tokenGaugeFromBalance(tokens.total ?? 0, platformPlan?.monthlyTokens ?? 0);
 
   return (
     <AppRailProvider refreshRail={refreshRail}>
@@ -276,10 +295,10 @@ export default function AppShell({ children }) {
                 role="button"
                 tabIndex={0}
                 onClick={() => {
-                  navigate("/");
+                  navigate(defaultHomePath);
                   if (isMobile) closeRail();
                 }}
-                onKeyDown={(e) => e.key === "Enter" && navigate("/")}
+                onKeyDown={(e) => e.key === "Enter" && navigate(defaultHomePath)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -341,7 +360,7 @@ export default function AppShell({ children }) {
             <button
               type="button"
               onClick={() => {
-                navigate("/");
+                navigate(defaultHomePath);
                 if (isMobile) closeRail();
               }}
               style={{
@@ -352,8 +371,8 @@ export default function AppShell({ children }) {
                 padding: collapsed ? "10px 0" : "10px 14px",
                 justifyContent: collapsed ? "center" : "flex-start",
                 border: "none",
-                background: isActive("/") ? "var(--cyd)" : "transparent",
-                color: isActive("/") ? "var(--cy)" : "var(--tx)",
+                background: (isMaster && masterMode === "master" ? pathname.startsWith(masterHomePath) : isActive("/")) ? "var(--cyd)" : "transparent",
+                color: (isMaster && masterMode === "master" ? pathname.startsWith(masterHomePath) : isActive("/")) ? "var(--cy)" : "var(--tx)",
                 cursor: "pointer",
                 fontFamily: "var(--fn)",
                 fontSize: "var(--fs-caption)",
@@ -701,87 +720,6 @@ export default function AppShell({ children }) {
               </button>
             ) : (
               <>
-                {user && (!isMaster || masterMode === "member") && (
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      flexDirection: collapsed ? "column" : "row",
-                      alignItems: "center",
-                      justifyContent: collapsed ? "center" : "stretch",
-                      gap: collapsed ? 6 : 8,
-                      marginBottom: 4,
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/my/subscription");
-                        if (isMobile) closeRail();
-                      }}
-                      title="토큰 잔액"
-                      style={{
-                        flex: collapsed ? undefined : 1,
-                        minWidth: 0,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 6,
-                        padding: collapsed ? "8px 6px" : "8px 10px",
-                        borderRadius: "var(--r-md)",
-                        border: "1px solid var(--br2)",
-                        background: "var(--cyd)",
-                        color: "var(--cy)",
-                        fontSize: collapsed ? 10 : "var(--fs-xs)",
-                        fontWeight: 700,
-                        fontFamily: "var(--mo)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {tokens.total.toLocaleString()} T
-                    </button>
-                    <span
-                      title="플랫폼 플랜"
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        border: "1px solid var(--br2)",
-                        background: "var(--sf2)",
-                        color: "var(--tx2)",
-                        fontSize: 10,
-                        fontWeight: 800,
-                        fontFamily: "var(--mo)",
-                        letterSpacing: "0.04em",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {platformPlan?.shortLabel || "Free"}
-                    </span>
-                    {planId === "free" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigate("/pricing");
-                          if (isMobile) closeRail();
-                        }}
-                        style={{
-                          padding: "6px 10px",
-                          borderRadius: "var(--r-md)",
-                          border: "1px solid var(--cy)",
-                          background: "transparent",
-                          color: "var(--cy)",
-                          fontSize: 10,
-                          fontWeight: 700,
-                          fontFamily: "var(--fn)",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {!collapsed ? "업그레이드" : "↑"}
-                      </button>
-                    )}
-                  </div>
-                )}
                 <div style={{ position: "relative", width: collapsed ? "auto" : "100%" }} ref={dropdownRef}>
                   <button
                     type="button"
@@ -966,7 +904,7 @@ export default function AppShell({ children }) {
                     } else {
                       if (isMaster) {
                         setMasterMode("master");
-                        navigate("/dashboard");
+                        navigate(masterHomePath);
                       } else {
                         navigate("/master-register");
                       }
@@ -1098,16 +1036,65 @@ export default function AppShell({ children }) {
                 </button>
               ) : (
                 <>
-                  {isImageAv(userAv) ? (
-                    <img
-                      src={userAv}
-                      alt=""
-                      style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <Av char={userChar} color="var(--cy)" size={32} />
-                  )}
-                  {masterMode !== "master" && (
+                  {!isMemberHome &&
+                    (isImageAv(userAv) ? (
+                      <img
+                        src={userAv}
+                        alt=""
+                        style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Av char={userChar} color="var(--cy)" size={32} />
+                    ))}
+                  {isMemberHome ? (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: isMobile ? 6 : 8 }}>
+                      <TokenRingGauge percent={memberHomeGaugePct} tone={memberHomeGaugeTone} size="md" />
+                      <button
+                        type="button"
+                        aria-label="알림 설정"
+                        onClick={() => navigate("/my/notifications")}
+                        style={{
+                          width: isMobile ? "var(--touch-min)" : 40,
+                          height: isMobile ? "var(--touch-min)" : 40,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          border: "1px solid var(--br)",
+                          borderRadius: "var(--r-md)",
+                          background: "var(--sf2)",
+                          color: "var(--tx2)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <BellIcon style={{ width: 22, height: 22 }} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="마이페이지"
+                        onClick={() => navigate("/my")}
+                        style={{
+                          width: isMobile ? "var(--touch-min)" : 40,
+                          height: isMobile ? "var(--touch-min)" : 40,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          border: "1px solid var(--br)",
+                          borderRadius: "var(--r-md)",
+                          background: "var(--sf2)",
+                          color: "var(--tx2)",
+                          cursor: "pointer",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {isImageAv(userAv) ? (
+                          <img src={userAv.trim()} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <Av char={userChar} color="var(--cy)" size={32} />
+                        )}
+                      </button>
+                    </div>
+                  ) : null}
+                  {masterMode !== "master" && !isMemberHome && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
                       <button
                         type="button"
@@ -1213,7 +1200,7 @@ export default function AppShell({ children }) {
                         마스터
                       </button>
                     </div>
-                  ) : (
+                  ) : !isMemberHome ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -1238,7 +1225,7 @@ export default function AppShell({ children }) {
                     >
                       내 클론 만들기
                     </button>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>

@@ -15,11 +15,12 @@
 ## MVP 포함 기준
 
 ✅ 포함:
-- **플랫폼 구독 UI**: 공개 `/pricing`(Mock·localStorage), **`/settings`** 구독 섹션, 레일/헤더 플랜 뱃지·업그레이드 CTA (실결제는 Phase 3 `platform_subscriptions`)
+- **플랫폼 구독 UI**: 공개 `/pricing`(Mock·localStorage), **`/settings`** 구독 섹션, **앱 상단 헤더**(멤버 모드) 플랜·업그레이드 CTA (실결제는 Phase 3 `platform_subscriptions`)
 - 인증 (이메일+비밀번호)
 - 클론 만들기 + 자료 업로드 (카테고리 A~D 가이드 포함)
 - RAG 기반 채팅 + 출처 표시
 - 마이페이지 (멤버탭 + 마스터탭)
+- 마스터 스튜디오 IA: **좌측 레일(섹션 + 내 클론) / 우측 작업영역** 구조
 - 토큰 Mock 충전
 - 클론 테스트 10가지 시나리오
 - 보너스 토큰 만료 CRON

@@ -20,6 +20,14 @@ function slugify(name) {
   return s || "clone";
 }
 
+function toCreateCloneErrorMessage(error) {
+  const msg = error?.message || "";
+  if (/row-level security|violates row-level security policy/i.test(msg)) {
+    return 'DB 권한 정책(RLS) 때문에 클론 생성이 차단되었습니다. Supabase SQL Editor에서 `docs/supabase/fix_clones_insert_rls.sql` 을 실행해 주세요.';
+  }
+  return msg || "클론 생성에 실패했습니다.";
+}
+
 export default function MasterRegister() {
   const navigate = useNavigate();
   const { user, supabaseConfigured } = useAuth();
@@ -122,7 +130,7 @@ export default function MasterRegister() {
 
     setBusy(false);
     if (cloneErr) {
-      setErr(cloneErr.message || "클론 생성에 실패했습니다.");
+      setErr(toCreateCloneErrorMessage(cloneErr));
       return;
     }
 

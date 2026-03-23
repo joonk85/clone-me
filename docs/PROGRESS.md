@@ -9,7 +9,7 @@
 
 | 날짜 | 결정 | 요약 |
 |------|------|------|
-| 2026-03 | **플랫폼 구독 모델 확정** | **기존:** 마스터별 클론 구독(`clone_subscriptions`)·패스 등 클론/패스 중심. **변경:** 멤버는 **플랫폼 플랜** Free / Basic(월 ₩9,900 → 50T) / Pro(월 ₩29,000 → 150T) / Ultimate(월 ₩59,000 → 400T). **Free**는 가입 보너스 **5토큰**. **토큰**으로 **어떤 마스터 클론이든** 대화 가능. **클론마다 1턴당 토큰**은 마스터 설정, UI에 **원화 참고**(예: 3T/턴 ≈ ₩300/턴, **1토큰=₩100** 기준). 소진 시 **추가 충전** 가능. 실결제·월 자동 지급 DB는 **Phase 3**(`platform_subscriptions` 등). **구현:** 공개 `/pricing`, `PlatformSubscriptionContext`, 레일·헤더·마이 레이아웃 플랜 뱃지. |
+| 2026-03 | **플랫폼 구독 모델 확정** | **기존:** 마스터별 클론 구독(`clone_subscriptions`)·패스 등 클론/패스 중심. **변경:** 멤버는 **플랫폼 플랜** Free / Basic(월 ₩9,900 → 50T) / Pro(월 ₩29,000 → 150T) / Ultimate(월 ₩59,000 → 400T). **Free**는 가입 보너스 **5토큰**. **토큰**으로 **어떤 마스터 클론이든** 대화 가능. **클론마다 1턴당 토큰**은 마스터 설정, UI에 **원화 참고**(예: 3T/턴 ≈ ₩300/턴, **1토큰=₩100** 기준). 소진 시 **추가 충전** 가능. 실결제·월 자동 지급 DB는 **Phase 3**(`platform_subscriptions` 등). **구현:** 공개 `/pricing`, `PlatformSubscriptionContext`, **헤더·마이 레이아웃** 플랜 뱃지(Left Rail 하단 제외). |
 
 ---
 
@@ -17,10 +17,10 @@
 
 | 항목 | 내용 | 참고 문서 |
 |------|------|-----------|
-| **비즈니스 모델** | 멤버 과금 **플랫폼 구독**(Free/Basic/Pro/Ultimate) + **토큰**으로 전 클론 이용. 마스터별 클론 월구독(`clone_subscriptions`) 중심에서 이관. MVP: 공개 **`/pricing`**·`PlatformSubscriptionContext`·localStorage Mock·레일/헤더 플랜 뱃지·채팅 **N토큰/턴·약 ₩/턴** (`tokenPricing.js`). Phase 3: `platform_subscriptions`·토스. | `agents/BRAIN.md`, `docs/PLATFORM_SUBSCRIPTION_SIDE_EFFECTS.md`, `src/lib/platformPlans.js` |
+| **비즈니스 모델** | 멤버 과금 **플랫폼 구독**(Free/Basic/Pro/Ultimate) + **토큰**으로 전 클론 이용. 마스터별 클론 월구독(`clone_subscriptions`) 중심에서 이관. MVP: 공개 **`/pricing`**·`PlatformSubscriptionContext`·localStorage Mock·**헤더** 플랜 뱃지·채팅 **N토큰/턴·약 ₩/턴** (`tokenPricing.js`). Phase 3: `platform_subscriptions`·토스. | `agents/BRAIN.md`, `docs/PLATFORM_SUBSCRIPTION_SIDE_EFFECTS.md`, `src/lib/platformPlans.js` |
 | **설정 URL** | **`/settings`** 보호 라우트(앱 셸 동일). `/my/settings`·`/my/subscription` → `/settings` 리다이렉트. 멤버 탭「보안」은 설정 안내. 신규 알림 컬럼 `notify_new_master`(선택 SQL). | `docs/SETTINGS_PAGE_SIDE_EFFECTS.md` |
 | **마켓 UI** | **`/market`** 전용 상단 바(검색·TokenRingGauge·알림·계정), Priority Access 배너·슬롯, 카테고리 가로 스크롤, 카드 그리드(1/2/3열)·호버 글로우·스켈레톤. 앱 셸 헤더는 마켓에서 숨김. | `docs/MARKET_PAGE_SIDE_EFFECTS.md`, `docs/STYLE_GUIDE.md` §Market |
-| **마이 계정 허브** | **`/my/*`(멤버)** 에서 **앱 Rail 숨김**, **fixed 268px 계정 메뉴**가 대체. **`/my/general|security|subscription|notifications`**. 마스터 `/my/master/*` 는 Rail 숨김·`main` 마진 0. `/settings`→`/my/general`. | `docs/MY_ACCOUNT_HUB_SIDE_EFFECTS.md` |
+| **마이 계정 허브** | **`/my/*`(멤버)** 에서 **앱 Rail 숨김**, **fixed 268px 계정 메뉴**가 대체. **`/my/general|security|subscription|notifications`**. 마스터 `/my/master/*` 도 **앱 Rail 숨김 + fixed 268px 마스터 레일**. `/settings`→`/my/general`. | `docs/MY_ACCOUNT_HUB_SIDE_EFFECTS.md` |
 | **Security Control** | `/my/security` — Password·Active Sessions(Supabase 세션 API 시도 + 폴백)·`signOut({ scope: 'others' })`·로컬 Security Log·위험 구역 삭제 모달. | `docs/SECURITY_CONTROL_SIDE_EFFECTS.md` |
 | **Subscription & Usage UI** | `/my/subscription` — Current/Upgrade 탭·이중 카드·토큰 링·이용 테이블·Export CSV(Mock)·플랜 카드·`platformPlans` perks 정리. | `docs/SUBSCRIPTION_USAGE_PAGE_SIDE_EFFECTS.md` |
 | **General Settings** | `/my/general` — 2열 프로필 폼·ACCOUNT INFO·Reset/Cancel/Save·SNS 입력 UI 제거(값은 DB 유지). | `docs/GENERAL_SETTINGS_SIDE_EFFECTS.md` |
