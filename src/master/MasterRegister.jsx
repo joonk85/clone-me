@@ -263,7 +263,7 @@ export default function MasterRegister() {
           <Bt v="pr" type="submit" dis={busy || !name.trim()}>
             {busy ? "만드는 중…" : "만들고 대시보드로 이동"}
           </Bt>
-          <Link to="/my/become-master" style={{ alignSelf: "center", fontSize: 14, color: "var(--tx2)" }}>
+          <Link to="/my/general" style={{ alignSelf: "center", fontSize: 14, color: "var(--tx2)" }}>
             취소
           </Link>
         </div>

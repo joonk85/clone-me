@@ -97,6 +97,14 @@ export const GLOBAL_CSS = `
   /* ── Text on primary / danger button ── */
   --on-cy:#000;
   --on-rd:#fff;
+
+  /* ── Market / 토큰 링 게이지 (TokenRingGauge) ── */
+  --market-page-bg:#0a0a0f;
+  --market-banner-surface:rgba(13,13,20,0.92);
+  --market-card-footer:#06060a;
+  --market-gauge-cyan:var(--cy);
+  --market-gauge-amber:var(--am);
+  --market-gauge-red:var(--rd);
 }
 
 @media (max-width:767px){
@@ -106,7 +114,11 @@ export const GLOBAL_CSS = `
   }
 }
 
+html{
+  height:100%;
+}
 html,body{
+  min-height:100%;
   background:var(--bg);
   color:var(--tx);
   font-family:var(--fn);
@@ -114,6 +126,12 @@ html,body{
   line-height:var(--lh);
   overflow-x:hidden;
   -webkit-tap-highlight-color:transparent;
+}
+#root{
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  flex:1;
 }
 h1,h2,h3,h4,.font-title{font-family:var(--fn-title);}
 
@@ -152,4 +170,6 @@ h1,h2,h3,h4,.font-title{font-family:var(--fn-title);}
 @keyframes wv{0%,100%{transform:scaleY(0.3)}50%{transform:scaleY(1)}}
 @keyframes d3{0%,60%,100%{opacity:1}30%{opacity:0}}
 @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes market-sk{0%,100%{opacity:0.4}50%{opacity:0.75}}
+.market-sk{animation:market-sk 1.15s ease-in-out infinite}
 `;

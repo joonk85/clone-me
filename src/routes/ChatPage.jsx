@@ -4,6 +4,7 @@ import { Navigate, useParams } from "react-router-dom";
 import Chat from "../member/Chat";
 import { useAppState } from "../contexts/AppStateContext";
 import { CLONES_MARKET } from "../lib/mockData";
+import { buildClonePriceLabel } from "../lib/tokenPricing";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -25,7 +26,18 @@ export default function ChatPage() {
       return;
     }
     if (!isUuid(cloneId)) {
-      setClone(CLONES_MARKET.find((c) => c.id === cloneId) || null);
+      const raw = CLONES_MARKET.find((c) => c.id === cloneId) || null;
+      if (!raw) {
+        setClone(null);
+        setLoading(false);
+        return;
+      }
+      const tp = raw.token_price ?? 3;
+      setClone({
+        ...raw,
+        token_price: tp,
+        priceLabel: buildClonePriceLabel(tp),
+      });
       setLoading(false);
       return;
     }
@@ -80,7 +92,7 @@ export default function ChatPage() {
         links: {},
         price: data.token_price ?? 1,
         token_price: data.token_price ?? 1,
-        priceLabel: `토큰 ${data.token_price ?? 1}/메시지`,
+        priceLabel: buildClonePriceLabel(data.token_price ?? 1),
       });
       setLoading(false);
     })();

@@ -37,3 +37,11 @@ export function requireSupabaseBrowserClient() {
   }
   return c;
 }
+
+/** Auth REST 호출용 (세션 목록 시도 등). */
+export function getSupabaseAuthConfig() {
+  return {
+    url: import.meta.env.VITE_SUPABASE_URL || "",
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+  };
+}

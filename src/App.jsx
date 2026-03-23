@@ -1,14 +1,14 @@
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppStateProvider } from "./contexts/AppStateContext";
+import { PlatformSubscriptionProvider } from "./contexts/PlatformSubscriptionContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import Layout from "./routes/Layout";
 import MasterProfilePage from "./routes/MasterProfilePage";
 import ChatPage from "./routes/ChatPage";
 import CloneDashPage from "./routes/CloneDashPage";
-import TokenPage, { TokenHistoryTab, TokenShopTab } from "./routes/TokenPage";
 
 import Home from "./pages/Home";
 import Login from "./auth/Login";
@@ -20,11 +20,11 @@ import Buyer from "./member/Buyer";
 import MyClones from "./master/MyClones";
 import Create from "./master/Create";
 import MasterRegister from "./master/MasterRegister";
-import MyLayout from "./mypage/MyLayout";
-import MemberProfile from "./mypage/MemberProfile";
-import MemberSubscription from "./mypage/MemberSubscription";
-import MemberConversations from "./mypage/MemberConversations";
-import MemberBecomeMaster from "./mypage/MemberBecomeMaster";
+import MyLayout, { MasterStudioChrome } from "./mypage/MyLayout";
+import MyAccountGeneral from "./mypage/MyAccountGeneral";
+import MyAccountSecurity from "./mypage/MyAccountSecurity";
+import MyAccountSubscription from "./mypage/MyAccountSubscription";
+import MyAccountNotifications from "./mypage/MyAccountNotifications";
 import MasterTab from "./mypage/MasterTab";
 import MasterVerify from "./mypage/master/MasterVerify";
 import MasterClonesList from "./mypage/master/MasterClonesList";
@@ -34,18 +34,30 @@ import MasterPayout from "./mypage/master/MasterPayout";
 import Settings from "./mypage/Settings";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import PlatformPricing from "./pages/PlatformPricing";
 import NotFound from "./pages/NotFound";
 import ServerError from "./pages/ServerError";
 import { GLOBAL_CSS } from "./styles/globalCss";
 
-// 앱 루트 — React Router v6, PRD URL 구조. Protected: /onboarding, /my/*, /chat/*, /master-register, /dashboard/*
+// 앱 루트 — React Router v6, PRD URL 구조. Protected: /onboarding, /settings, /my/*, /chat/*, /master-register, /dashboard/*
 
 export default function App() {
   return (
-    <div style={{ minHeight: 700, background: "var(--bg)", color: "var(--tx)", fontFamily: "var(--fn)", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        minHeight: "100dvh",
+        flex: 1,
+        background: "var(--bg)",
+        color: "var(--tx)",
+        fontFamily: "var(--fn)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <style>{GLOBAL_CSS}</style>
       <BrowserRouter>
         <AuthProvider>
+          <PlatformSubscriptionProvider>
           <AppStateProvider>
             <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             <Routes>
@@ -58,6 +70,7 @@ export default function App() {
                   <Route path="signup/verified" element={<Verified />} />
                 </Route>
                 <Route path="market" element={<Market />} />
+                <Route path="pricing" element={<PlatformPricing />} />
                 <Route path="master/:id" element={<MasterProfilePage />} />
                 <Route path="terms" element={<Terms />} />
                 <Route path="privacy" element={<Privacy />} />
@@ -67,18 +80,20 @@ export default function App() {
                 {/* 보호: 인증 필요 */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="onboarding" element={<Onboarding />} />
+                  <Route path="settings" element={<Settings />} />
                   <Route path="my" element={<MyLayout />}>
-                    <Route index element={<Navigate to="profile" replace />} />
-                    <Route path="profile" element={<MemberProfile />} />
-                    <Route path="subscription" element={<MemberSubscription />} />
-                    <Route path="conversations" element={<MemberConversations />} />
-                    <Route path="become-master" element={<MemberBecomeMaster />} />
-                    <Route path="settings" element={<Settings />} />
-                    <Route path="tokens" element={<TokenPage />}>
-                      <Route index element={<TokenShopTab />} />
-                      <Route path="history" element={<TokenHistoryTab />} />
-                    </Route>
-                    <Route path="master" element={<Outlet />}>
+                    <Route index element={<Navigate to="general" replace />} />
+                    <Route path="general" element={<MyAccountGeneral />} />
+                    <Route path="security" element={<MyAccountSecurity />} />
+                    <Route path="subscription" element={<MyAccountSubscription />} />
+                    <Route path="notifications" element={<MyAccountNotifications />} />
+                    <Route path="profile" element={<Navigate to="/my/general" replace />} />
+                    <Route path="tokens" element={<Navigate to="/my/subscription" replace />} />
+                    <Route path="tokens/history" element={<Navigate to="/my/subscription" replace />} />
+                    <Route path="settings" element={<Navigate to="/my/general" replace />} />
+                    <Route path="conversations" element={<Navigate to="/" replace />} />
+                    <Route path="become-master" element={<Navigate to="/master-register" replace />} />
+                    <Route path="master" element={<MasterStudioChrome />}>
                       <Route index element={<Navigate to="profile" replace />} />
                       <Route path="profile" element={<MasterTab />} />
                       <Route path="verify" element={<MasterVerify />} />
@@ -100,6 +115,7 @@ export default function App() {
             </Routes>
             </div>
           </AppStateProvider>
+          </PlatformSubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>

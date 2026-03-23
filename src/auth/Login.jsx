@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Bt from "../common/Bt";
 import { useAuth } from "../contexts/AuthContext";
 import { useWindowSize } from "../hooks/useWindowSize";
+import { appendSecurityLog } from "../lib/securityLocalLog";
 import { getSupabaseBrowserClient } from "../lib/supabase";
 
 export default function Login() {
@@ -46,10 +47,16 @@ export default function Login() {
     });
     setSubmitting(false);
     if (err) {
+      appendSecurityLog({
+        type: "login_failed",
+        success: false,
+        detail: "이메일 또는 비밀번호를 확인하세요.",
+      });
       setError(err.message || "로그인에 실패했습니다.");
       return;
     }
     if (data.session?.user) {
+      appendSecurityLog({ type: "login_success", success: true });
       navigate(from, { replace: true });
     }
   };

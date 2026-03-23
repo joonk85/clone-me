@@ -30,7 +30,7 @@ function isRlsError(err) {
   return c === "42501" || m.includes("row-level security") || m.includes("permission denied");
 }
 
-export default function TokenShop() {
+export default function TokenShop({ embedded = false, onAfterRecharge } = {}) {
   const { user, supabaseConfigured } = useAuth();
   const [purchased, setPurchased] = useState(null);
   const [bonusRows, setBonusRows] = useState([]);
@@ -93,6 +93,7 @@ export default function TokenShop() {
       setPayMsg(`${pack.tokens}토큰이 브라우저 Mock으로 충전되었습니다.`);
       setModalPack(null);
       load();
+      onAfterRecharge?.();
       return;
     }
 
@@ -123,15 +124,28 @@ export default function TokenShop() {
     setPayMsg(`${pack.tokens}토큰이 충전되었습니다. (테스트 결제)`);
     setModalPack(null);
     load();
+    onAfterRecharge?.();
   };
 
   return (
-    <div style={{ minHeight: 480 }}>
-      <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 10 }}>TOKENS</div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>토큰 상점</h1>
-      <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 16, fontSize: 13 }}>
-        <strong style={{ color: "var(--am)" }}>테스트 모드</strong> — 실제 결제·카드 없이 Mock으로만 충전됩니다.
-      </p>
+    <div style={{ minHeight: embedded ? 0 : 480 }}>
+      {!embedded && (
+        <>
+          <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 10 }}>TOKENS</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>토큰 상점</h1>
+          <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 16, fontSize: 13 }}>
+            <strong style={{ color: "var(--am)" }}>테스트 모드</strong> — 실제 결제·카드 없이 Mock으로만 충전됩니다.
+          </p>
+        </>
+      )}
+      {embedded && (
+        <h2 style={{ fontSize: "var(--fs-body)", fontWeight: 800, marginBottom: 12, fontFamily: "var(--fn)", color: "var(--tx)" }}>충전 패키지</h2>
+      )}
+      {embedded && (
+        <p style={{ color: "var(--tx2)", lineHeight: 1.65, marginBottom: 16, fontSize: "var(--fs-caption)", fontFamily: "var(--fn)" }}>
+          <strong style={{ color: "var(--am)" }}>테스트 모드</strong> — Mock 충전만 가능합니다.
+        </p>
+      )}
 
       {supabaseConfigured && user && (
         <Cd style={{ padding: "16px 18px", marginBottom: 20, borderColor: "var(--br2)" }}>

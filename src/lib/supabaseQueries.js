@@ -290,10 +290,119 @@ export async function fetchTokenSummary(supabase, userId) {
 export async function fetchClonesForMaster(supabase, masterId) {
   const { data, error } = await supabase
     .from("clones")
-    .select("id, name, is_active, token_price, discount, color, av, updated_at")
+    .select("id, name, subtitle, is_active, token_price, discount, discount_end, color, av, updated_at, created_at, version, quality_score")
     .eq("master_id", masterId)
     .order("updated_at", { ascending: false });
   return { rows: data || [], error };
+}
+
+const MS_DAY = 86400000;
+
+/**
+ * 마스터 클론 목록용: 이번 달 메시지 수, 클론별 유니크 유저, 마지막 활동, 월간 메시지 합계.
+ * @param {import("@supabase/supabase-js").SupabaseClient} supabase
+ * @param {string[]} cloneIds
+ */
+export async function fetchMasterClonesListAnalytics(supabase, cloneIds) {
+  const empty = {
+    byClone: {},
+    monthMessageTotal: 0,
+    error: null,
+  };
+  if (!cloneIds?.length) return empty;
+
+  const { data: convs, error: cErr } = await supabase
+    .from("conversations")
+    .select("id, clone_id, user_id, updated_at")
+    .in("clone_id", cloneIds)
+    .or("is_test.eq.false,is_test.is.null");
+  if (cErr) return { ...empty, error: cErr };
+
+  const convList = convs || [];
+  const convIds = convList.map((c) => c.id);
+  const convToClone = Object.fromEntries(convList.map((c) => [c.id, c]));
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthStartIso = monthStart.toISOString();
+
+  /** @type {Record<string, { monthMessages: number, uniqueUsers: Set<string>, lastActivity: number }>} */
+  const byClone = {};
+  for (const id of cloneIds) {
+    byClone[id] = { monthMessages: 0, uniqueUsers: new Set(), lastActivity: 0 };
+  }
+
+  for (const c of convList) {
+    const bucket = byClone[c.clone_id];
+    if (!bucket) continue;
+    if (c.user_id) bucket.uniqueUsers.add(c.user_id);
+    const t = new Date(c.updated_at).getTime();
+    if (t > bucket.lastActivity) bucket.lastActivity = t;
+  }
+
+  const chunkSize = 120;
+  for (let i = 0; i < convIds.length; i += chunkSize) {
+    const chunk = convIds.slice(i, i + chunkSize);
+    const { data: msgs, error: mErr } = await supabase
+      .from("messages")
+      .select("conversation_id, created_at")
+      .in("conversation_id", chunk)
+      .gte("created_at", monthStartIso);
+    if (mErr) return { ...empty, error: mErr };
+    for (const m of msgs || []) {
+      const conv = convToClone[m.conversation_id];
+      if (!conv) continue;
+      const bucket = byClone[conv.clone_id];
+      if (!bucket) continue;
+      bucket.monthMessages += 1;
+      const mt = new Date(m.created_at).getTime();
+      if (mt > bucket.lastActivity) bucket.lastActivity = mt;
+    }
+  }
+
+  let monthMessageTotal = 0;
+  const serialized = {};
+  for (const id of cloneIds) {
+    const b = byClone[id];
+    monthMessageTotal += b.monthMessages;
+    serialized[id] = {
+      monthMessages: b.monthMessages,
+      uniqueUsers: b.uniqueUsers.size,
+      lastActivity: b.lastActivity,
+    };
+  }
+
+  return { byClone: serialized, monthMessageTotal, error: null };
+}
+
+/** DB 클론 행 → CloneDash / AppState `myClones` 최소 셰이프 */
+export function mapDbCloneToMyCloneShape(row, analytics) {
+  const a = analytics?.[row.id] || { monthMessages: 0, uniqueUsers: 0, lastActivity: 0 };
+  const av =
+    typeof row.av === "string" && /^https?:\/\//i.test(row.av.trim())
+      ? row.av.trim()
+      : (row.name || "?").toString().trim().charAt(0) || "?";
+  return {
+    id: row.id,
+    name: row.name,
+    subtitle: row.subtitle || "",
+    price: (row.token_price || 1) * 100,
+    token_price: row.token_price ?? 1,
+    discount: row.discount ?? 0,
+    discountEnd: row.discount_end || "",
+    active: !!row.is_active,
+    subs: a.uniqueUsers,
+    docs: 0,
+    v: row.version || "v1",
+    color: row.color || "#63d9ff",
+    av,
+    quality: { noAnswer: true, toneStyle: true, citation: true },
+    mktLinks: [],
+    updates: [],
+    notices: [],
+    files: [],
+    trainingStatus: "idle",
+  };
 }
 
 export async function fetchMasterHomeSummary(supabase, userId) {

@@ -67,4 +67,4 @@
 |------|------|
 | `src/common/AppShell.jsx` | Rail 상단 항상 clone.me. 멤버: 홈+마스터 찾기+대화 히스토리, 하단 이름 드롭업+내 클론 만들기. 마스터: 홈+내 클론 목록+새 클론 만들기, 하단 이름 드롭업(마스터 스튜디오/설정)+멤버로 전환. 헤더: 멤버=내 클론 만들기, 마스터=토글. `isMaster = masterRow \|\| userRow?.has_master_profile` |
 | `src/contexts/AppStateContext.jsx` | 변경 없음 (masterMode 유지) |
-| 라우트 | /master-register, /dashboard, /dashboard/create, /dashboard/:cloneId, /my, /my/settings 동일 |
+| 라우트 | /master-register, /dashboard, /dashboard/create, /dashboard/:cloneId, /my, /settings 동일 |

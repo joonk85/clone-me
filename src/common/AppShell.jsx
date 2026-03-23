@@ -10,12 +10,14 @@ import {
   HomeIcon,
   MagnifyingGlassIcon,
   PlusCircleIcon,
+  RectangleStackIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 import Av from "./Av";
 import { useAuth } from "../contexts/AuthContext";
+import { usePlatformSubscription } from "../contexts/PlatformSubscriptionContext";
 import { useAppState } from "../contexts/AppStateContext";
 import { AppRailProvider } from "../contexts/AppRailContext";
 import { usePageTitle } from "../contexts/PageTitleContext";
@@ -37,13 +39,15 @@ const PATH_TITLES = {
   "/": "홈",
   "/market": "탐색",
   "/my": "마이",
-  "/my/profile": "프로필",
-  "/my/conversations": "대화 목록",
-  "/my/tokens": "토큰",
-  "/my/settings": "설정",
+  "/my/general": "계정",
+  "/my/security": "보안",
+  "/my/subscription": "구독·사용",
+  "/my/notifications": "알림",
+  "/settings": "계정",
+  "/my/settings": "계정",
   "/my/master": "마스터 스튜디오",
-  "/my/subscription": "구독",
-  "/my/become-master": "마스터 되기",
+  "/my/master/clones": "내 클론",
+  "/pricing": "요금제",
   "/dashboard": "클론 리스트",
   "/dashboard/create": "클론 만들기",
   "/master-register": "마스터 등록",
@@ -89,6 +93,7 @@ function readCollapsed() {
 
 export default function AppShell({ children }) {
   const { user } = useAuth();
+  const { planId, plan: platformPlan, refreshPlan } = usePlatformSubscription();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { isMobile } = useWindowSize();
@@ -133,6 +138,14 @@ export default function AppShell({ children }) {
   }, [user?.id, refreshRail]);
 
   useEffect(() => {
+    const onFocus = () => {
+      if (user?.id) refreshPlan();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [user?.id, refreshPlan]);
+
+  useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, String(collapsed));
     } catch (_) {}
@@ -145,7 +158,17 @@ export default function AppShell({ children }) {
 
   const closeRail = useCallback(() => setRailOpen(false), []);
   const railWidth = collapsed ? RAIL_COLLAPSED : RAIL_OPEN;
-  const mainMarginLeft = isMobile ? 0 : railWidth;
+  /** /my/* 에서 기본 앱 Rail 숨김 — 멤버 계정 사이드가 동일 자리(폭) 사용 */
+  const hideAppRail = pathname.startsWith("/my");
+  const isMyMemberAccount = pathname.startsWith("/my") && !pathname.startsWith("/my/master");
+  const MY_ACCOUNT_SIDEBAR_W = 268;
+  const mainMarginLeft = isMobile
+    ? 0
+    : hideAppRail
+      ? isMyMemberAccount
+        ? MY_ACCOUNT_SIDEBAR_W
+        : 0
+      : railWidth;
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -157,6 +180,17 @@ export default function AppShell({ children }) {
     }
   }, [userDropdownOpen]);
 
+  useEffect(() => {
+    const open = () => setRailOpen(true);
+    window.addEventListener("clone-me-open-rail", open);
+    return () => window.removeEventListener("clone-me-open-rail", open);
+  }, []);
+
+  useEffect(() => {
+    if (pathname.startsWith("/my")) setRailOpen(false);
+  }, [pathname]);
+
+  const isMarketPage = pathname === "/market";
   const isActive = (path) => pathname === path || (path !== "/" && pathname.startsWith(path));
 
   return (
@@ -172,7 +206,7 @@ export default function AppShell({ children }) {
         }}
       >
         {/* Overlay (mobile) */}
-        {isMobile && (
+        {isMobile && !hideAppRail && (
           <button
             type="button"
             aria-label="레일 닫기"
@@ -194,7 +228,8 @@ export default function AppShell({ children }) {
           />
         )}
 
-        {/* Left Rail: fixed, full viewport height */}
+        {/* Left Rail: fixed, full viewport height — /my/* 에서는 숨김(계정 메뉴가 대체) */}
+        {!hideAppRail && (
         <aside
           className="app-shell-rail"
           role="navigation"
@@ -328,6 +363,33 @@ export default function AppShell({ children }) {
               <HomeIcon style={{ width: 20, height: 20, flexShrink: 0 }} />
               {!collapsed && <span>홈</span>}
             </button>
+            {user && isMaster && masterMode === "master" && (
+              <button
+                type="button"
+                onClick={() => {
+                  navigate("/my/master/clones");
+                  if (isMobile) closeRail();
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: collapsed ? "10px 0" : "10px 14px",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  border: "none",
+                  background: pathname.startsWith("/my/master/clones") ? "var(--cyd)" : "transparent",
+                  color: pathname.startsWith("/my/master/clones") ? "var(--cy)" : "var(--tx)",
+                  cursor: "pointer",
+                  fontFamily: "var(--fn)",
+                  fontSize: "var(--fs-caption)",
+                  fontWeight: 600,
+                }}
+              >
+                <RectangleStackIcon style={{ width: 20, height: 20, flexShrink: 0 }} />
+                {!collapsed && <span>클론 목록</span>}
+              </button>
+            )}
             {(!user || !isMaster || masterMode === "member") && (
               <button
                 type="button"
@@ -639,6 +701,87 @@ export default function AppShell({ children }) {
               </button>
             ) : (
               <>
+                {user && (!isMaster || masterMode === "member") && (
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: collapsed ? "column" : "row",
+                      alignItems: "center",
+                      justifyContent: collapsed ? "center" : "stretch",
+                      gap: collapsed ? 6 : 8,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate("/my/subscription");
+                        if (isMobile) closeRail();
+                      }}
+                      title="토큰 잔액"
+                      style={{
+                        flex: collapsed ? undefined : 1,
+                        minWidth: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        padding: collapsed ? "8px 6px" : "8px 10px",
+                        borderRadius: "var(--r-md)",
+                        border: "1px solid var(--br2)",
+                        background: "var(--cyd)",
+                        color: "var(--cy)",
+                        fontSize: collapsed ? 10 : "var(--fs-xs)",
+                        fontWeight: 700,
+                        fontFamily: "var(--mo)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {tokens.total.toLocaleString()} T
+                    </button>
+                    <span
+                      title="플랫폼 플랜"
+                      style={{
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        border: "1px solid var(--br2)",
+                        background: "var(--sf2)",
+                        color: "var(--tx2)",
+                        fontSize: 10,
+                        fontWeight: 800,
+                        fontFamily: "var(--mo)",
+                        letterSpacing: "0.04em",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {platformPlan?.shortLabel || "Free"}
+                    </span>
+                    {planId === "free" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate("/pricing");
+                          if (isMobile) closeRail();
+                        }}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "var(--r-md)",
+                          border: "1px solid var(--cy)",
+                          background: "transparent",
+                          color: "var(--cy)",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontFamily: "var(--fn)",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {!collapsed ? "업그레이드" : "↑"}
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div style={{ position: "relative", width: collapsed ? "auto" : "100%" }} ref={dropdownRef}>
                   <button
                     type="button"
@@ -731,7 +874,7 @@ export default function AppShell({ children }) {
                           <button
                             type="button"
                             onClick={() => {
-                              navigate("/my/settings");
+                              navigate("/my/general");
                               setUserDropdownOpen(false);
                               if (isMobile) closeRail();
                             }}
@@ -785,7 +928,7 @@ export default function AppShell({ children }) {
                           <button
                             type="button"
                             onClick={() => {
-                              navigate("/my/settings");
+                              navigate("/my/general");
                               setUserDropdownOpen(false);
                               if (isMobile) closeRail();
                             }}
@@ -863,8 +1006,9 @@ export default function AppShell({ children }) {
             )}
           </div>
         </aside>
+        )}
 
-        {/* Main: margin-left로 rail 너비 확보, 전체 높이 */}
+        {/* Main: margin-left로 rail(또는 마이 계정 사이드) 너비 확보, 전체 높이 */}
         <div
           className="app-shell-main"
           style={{
@@ -876,6 +1020,7 @@ export default function AppShell({ children }) {
             flexDirection: "column",
           }}
         >
+          {!isMarketPage ? (
           <header
             style={{
               flexShrink: 0,
@@ -893,7 +1038,7 @@ export default function AppShell({ children }) {
               borderBottom: "1px solid var(--br)",
             }}
           >
-            {isMobile && (
+            {isMobile && !hideAppRail && (
               <button
                 type="button"
                 aria-label="메뉴 열기"
@@ -963,26 +1108,62 @@ export default function AppShell({ children }) {
                     <Av char={userChar} color="var(--cy)" size={32} />
                   )}
                   {masterMode !== "master" && (
-                    <button
-                      type="button"
-                      onClick={() => navigate("/my/tokens")}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "6px 12px",
-                        borderRadius: 999,
-                        border: "1px solid var(--br2)",
-                        background: "var(--cyd)",
-                        color: "var(--cy)",
-                        fontSize: "var(--fs-xs)",
-                        fontWeight: 700,
-                        fontFamily: "var(--mo)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {tokens.total.toLocaleString()} T
-                    </button>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/my/subscription")}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 12px",
+                          borderRadius: 999,
+                          border: "1px solid var(--br2)",
+                          background: "var(--cyd)",
+                          color: "var(--cy)",
+                          fontSize: "var(--fs-xs)",
+                          fontWeight: 700,
+                          fontFamily: "var(--mo)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {tokens.total.toLocaleString()} T
+                      </button>
+                      <span
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: 999,
+                          border: "1px solid var(--br2)",
+                          background: "var(--sf2)",
+                          color: "var(--tx2)",
+                          fontSize: 10,
+                          fontWeight: 800,
+                          fontFamily: "var(--mo)",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {platformPlan?.shortLabel || "Free"}
+                      </span>
+                      {planId === "free" && (
+                        <button
+                          type="button"
+                          onClick={() => navigate("/pricing")}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "var(--r-md)",
+                            border: "1px solid var(--cy)",
+                            background: "transparent",
+                            color: "var(--cy)",
+                            fontSize: "var(--fs-xs)",
+                            fontWeight: 700,
+                            fontFamily: "var(--fn)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          업그레이드
+                        </button>
+                      )}
+                    </div>
                   )}
                   {isMaster && masterMode === "master" ? (
                     <div
@@ -1062,6 +1243,7 @@ export default function AppShell({ children }) {
               )}
             </div>
           </header>
+          ) : null}
           <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>{children}</div>
         </div>
       </div>

@@ -38,7 +38,7 @@ function matchesFilter(filterId, type) {
   return true;
 }
 
-export default function TokenHistory() {
+export default function TokenHistory({ embedded = false } = {}) {
   const { user, supabaseConfigured } = useAuth();
   const [filter, setFilter] = useState("all");
   const [rows, setRows] = useState([]);
@@ -92,11 +92,18 @@ export default function TokenHistory() {
   };
 
   return (
-    <div style={{ minHeight: 480 }}>
-      <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 10 }}>TOKENS</div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>이용 내역</h1>
-      <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 16, fontSize: 13 }}>
-        충전(Mock)·사용·보너스 기록입니다. DB + 브라우저 Mock 충전이 합쳐져 표시됩니다.
+    <div style={{ minHeight: embedded ? 0 : 480 }}>
+      {!embedded && (
+        <>
+          <div style={{ fontSize: 10, color: "var(--cy)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 10 }}>TOKENS</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>이용 내역</h1>
+        </>
+      )}
+      {embedded ? (
+        <h2 style={{ fontSize: "var(--fs-body)", fontWeight: 800, marginBottom: 10, fontFamily: "var(--fn)", color: "var(--tx)" }}>사용 이력</h2>
+      ) : null}
+      <p style={{ color: "var(--tx2)", lineHeight: 1.7, marginBottom: 16, fontSize: embedded ? "var(--fs-caption)" : 13, fontFamily: "var(--fn)" }}>
+        충전(Mock)·사용·만료·보너스 내역입니다. DB와 브라우저 Mock이 합쳐져 표시됩니다.
       </p>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>

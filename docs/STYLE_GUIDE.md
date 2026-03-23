@@ -73,6 +73,33 @@ JS에서는 `useWindowSize().isMobile` (`width < 768`).
 ### 태그·에러 서페이스 (기존)
 `--tg-*-bg`, `--err-surface`, `--err-border`, `--am-surface` …
 
+### 마켓 `/market` (전용 토큰)
+| 변수 | 설명 |
+|------|------|
+| `--market-page-bg` | 페이지 배경 (`#0a0a0f`) |
+| `--market-banner-surface` | Priority Access 카드 배경 |
+| `--market-card-footer` | 카드 하단 1/3 다크 영역 |
+| `--market-gauge-cyan` / `--amber` / `--red` | 토큰 링 `TokenRingGauge` stroke |
+
+### 마스터 클론 목록 (`/my/master/clones`)
+- 상태 뱃지: **Operating** `var(--cy)`/`var(--cyd)` · **Idle** `var(--am)`/`var(--am-surface)` · **Inactive** `var(--tx3)`/`var(--sf3)`.
+- 테이블 헤더 모노 캡션 스타일, 진행 바 `var(--market-gauge-cyan)`. Side effects: `docs/MASTER_CLONES_LIST_SIDE_EFFECTS.md`
+
+### 마이 계정 General (`/my/general`)
+- **General Settings** — 라벨 `DISPLAY NAME` 등은 영문(모노 상단 캡션 스타일), 본문·ACCOUNT INFO는 한국어.
+- **Reset to Defaults** — 밑줄·`var(--cy)` 텍스트 버튼. **ACCOUNT INFO** 카드는 `var(--sf2)` 배경 구분.
+- Side effects: `docs/GENERAL_SETTINGS_SIDE_EFFECTS.md`
+
+### 마이 계정 Subscription (`/my/subscription`)
+- 탭 **Current** / **Upgrade**, 카드 라벨 **ACCOUNT STATUS** · **TOKEN CONSUMPTION** — 영문, 본문·테이블 헤더는 한국어 병행.
+- 토큰 링·바: `TokenRingGauge` + `--market-gauge-cyan|amber|red`. 플랜 카드 **RECOMMENDED**는 `SparklesIcon` + `var(--cy)` 보더.
+- Side effects: `docs/SUBSCRIPTION_USAGE_PAGE_SIDE_EFFECTS.md`
+
+### 마이 계정 Security (`/my/security`)
+- **Security Control** — 섹션 타이틀·버튼은 스펙 영문(`Update Password`, `LOG OUT ALL OTHER DEVICES`, `VIEW FULL SECURITY HISTORY`), 설명·빈 상태는 한국어.
+- 실패 로그·위험 구역: **`var(--rd)`** / 성공 메시지: **`var(--gn)`**. 아이콘: `@heroicons/react/24/outline` (예: `ArrowRightOnRectangleIcon`).
+- Side effects: `docs/SECURITY_CONTROL_SIDE_EFFECTS.md`
+
 ## 접근성
 
 - 터치 타겟 **최소 44px** (모바일 Nav·버튼)

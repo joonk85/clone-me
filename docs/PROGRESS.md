@@ -5,10 +5,26 @@
 
 ---
 
+## 결정 로그 (비즈니스·정책)
+
+| 날짜 | 결정 | 요약 |
+|------|------|------|
+| 2026-03 | **플랫폼 구독 모델 확정** | **기존:** 마스터별 클론 구독(`clone_subscriptions`)·패스 등 클론/패스 중심. **변경:** 멤버는 **플랫폼 플랜** Free / Basic(월 ₩9,900 → 50T) / Pro(월 ₩29,000 → 150T) / Ultimate(월 ₩59,000 → 400T). **Free**는 가입 보너스 **5토큰**. **토큰**으로 **어떤 마스터 클론이든** 대화 가능. **클론마다 1턴당 토큰**은 마스터 설정, UI에 **원화 참고**(예: 3T/턴 ≈ ₩300/턴, **1토큰=₩100** 기준). 소진 시 **추가 충전** 가능. 실결제·월 자동 지급 DB는 **Phase 3**(`platform_subscriptions` 등). **구현:** 공개 `/pricing`, `PlatformSubscriptionContext`, 레일·헤더·마이 레이아웃 플랜 뱃지. |
+
+---
+
 ## 최근 반영 사항 (2026-03)
 
 | 항목 | 내용 | 참고 문서 |
 |------|------|-----------|
+| **비즈니스 모델** | 멤버 과금 **플랫폼 구독**(Free/Basic/Pro/Ultimate) + **토큰**으로 전 클론 이용. 마스터별 클론 월구독(`clone_subscriptions`) 중심에서 이관. MVP: 공개 **`/pricing`**·`PlatformSubscriptionContext`·localStorage Mock·레일/헤더 플랜 뱃지·채팅 **N토큰/턴·약 ₩/턴** (`tokenPricing.js`). Phase 3: `platform_subscriptions`·토스. | `agents/BRAIN.md`, `docs/PLATFORM_SUBSCRIPTION_SIDE_EFFECTS.md`, `src/lib/platformPlans.js` |
+| **설정 URL** | **`/settings`** 보호 라우트(앱 셸 동일). `/my/settings`·`/my/subscription` → `/settings` 리다이렉트. 멤버 탭「보안」은 설정 안내. 신규 알림 컬럼 `notify_new_master`(선택 SQL). | `docs/SETTINGS_PAGE_SIDE_EFFECTS.md` |
+| **마켓 UI** | **`/market`** 전용 상단 바(검색·TokenRingGauge·알림·계정), Priority Access 배너·슬롯, 카테고리 가로 스크롤, 카드 그리드(1/2/3열)·호버 글로우·스켈레톤. 앱 셸 헤더는 마켓에서 숨김. | `docs/MARKET_PAGE_SIDE_EFFECTS.md`, `docs/STYLE_GUIDE.md` §Market |
+| **마이 계정 허브** | **`/my/*`(멤버)** 에서 **앱 Rail 숨김**, **fixed 268px 계정 메뉴**가 대체. **`/my/general|security|subscription|notifications`**. 마스터 `/my/master/*` 는 Rail 숨김·`main` 마진 0. `/settings`→`/my/general`. | `docs/MY_ACCOUNT_HUB_SIDE_EFFECTS.md` |
+| **Security Control** | `/my/security` — Password·Active Sessions(Supabase 세션 API 시도 + 폴백)·`signOut({ scope: 'others' })`·로컬 Security Log·위험 구역 삭제 모달. | `docs/SECURITY_CONTROL_SIDE_EFFECTS.md` |
+| **Subscription & Usage UI** | `/my/subscription` — Current/Upgrade 탭·이중 카드·토큰 링·이용 테이블·Export CSV(Mock)·플랜 카드·`platformPlans` perks 정리. | `docs/SUBSCRIPTION_USAGE_PAGE_SIDE_EFFECTS.md` |
+| **General Settings** | `/my/general` — 2열 프로필 폼·ACCOUNT INFO·Reset/Cancel/Save·SNS 입력 UI 제거(값은 DB 유지). | `docs/GENERAL_SETTINGS_SIDE_EFFECTS.md` |
+| **마스터 클론 목록** | `/my/master/clones` — 검색·통계·테이블/모바일 카드·페이지네이션·Supabase 집계·Rail **클론 목록** 링크. | `docs/MASTER_CLONES_LIST_SIDE_EFFECTS.md` |
 | **채팅 UI** | Claude 스타일: 좌측 Rail(240px)·대화 목록·구독 클론, 상단 헤더(클론 아바타·배지·정보), 말풍선·출처(📄/📺 → Heroicons), 하단 입력 고정. 모바일 100dvh·햄버거 토글. | `docs/CHAT_SIDEBAR_SIDE_EFFECTS.md` |
 | **아이콘 통일** | `@heroicons/react` 도입. 이모지·버튼/배지 아이콘 → Heroicons(16/20/24px, currentColor). 빈 상태 일러스트 이모지는 유지. | `docs/HEROICONS_MIGRATION.md` |
 | **폰트·타이포** | 타이틀 Syne(700·800), 본문 Pretendard Variable + 시스템, 숫자/코드 Space Mono. 크기 12/14/16/18/24/32/48px, 줄간격 1.5. Nav 로고·h1~h4에 `--fn-title`. | `docs/FONT_EMOJI_SIDE_EFFECTS.md`, `docs/STYLE_GUIDE.md` |
@@ -35,15 +51,14 @@
 - **홈 `/`** — 비로그인: BETA 뱃지·시안 그라디언트 히어로 타이틀·cyan 글로우·통계(100+/24시간/월200회)·마켓/강사 CTA · Featured·하단 회원 CTA / 멤버·마스터 동일
 - **네비** — 데스크톱: 상단 홈·마켓·마이 / 모바일: 하단 탭바(동일 3탭) + 헤더 로고·로그인|내 정보 (`navShell.js`로 채팅·대시보드 등에서 탭바 숨김)
 - **마켓 `/market`** — 헤더 카드·Featured 가로 스크롤(모바일)/그리드·리스트 카드(액센트 바·이미지 아바타)·필터 빈 목록·Supabase 미설정/빈 마켓/에러 UI·`LoadingSpinner` (CSS 변수만)
-- **마이 `/my`** — 헤더(그라데이션·링 아바타·닉네임·멤버/마스터 뱃지·`MasterBadges`·토큰 카드 링크)·설정 텍스트 버튼·멤버/마스터 탭 라벨·`MemberProfile`·`MasterTab` 카드 폼·로딩/에러 토큰색
+- **마이 `/my`** — **계정 허브**: **`AppShell` 레일 숨김** + **fixed 좌측 268px** 계정 메뉴·우측 `MyAccount*`. **`/my/subscription`**: Current/Upgrade·이중 카드·이용 테이블(Mock CSV). 마스터 스튜디오 `/my/master/*`. (`docs/MY_ACCOUNT_HUB_SIDE_EFFECTS.md`, `docs/SUBSCRIPTION_USAGE_PAGE_SIDE_EFFECTS.md`)
 - **UI 공통 (5차)** — `UiStates.jsx`(`ErrorBanner`·`LoadingBlock`·`EmptyState`)·`--on-rd`·에러 배너 통일(온보딩·설정·마스터·토큰샵 등)·`MasterBadges`/Buyer/CloneDash/프로필 링크 하드코딩 색 제거·768px 가이드 STYLE_GUIDE §13
-- **마이페이지** — `MyLayout` 헤더(아바타·닉네임·배지·토큰·⚙️)  
-  - 멤버 탭: 프로필·토큰·구독·대화·마스터 유도  
-  - 마스터 탭: 프로필·인증·내 클론·수익·단가·정산계좌 (`/my/master/*`)
+- **마이페이지** — `MyLayout`: 멤버는 사이드+콘텐츠, 마스터는 `/my/master/*` 탭 크롬
 - **마스터 등록** `/master-register` — **간소화:** 클론 이름·설명·컬러만 입력 → 마스터(없으면 생성) + 클론 1개 생성 → 즉시 `/dashboard/:id` 이동. 인증/자료는 나중에(대시보드·마이페이지)
 - **클론 만들기** `/dashboard/create` — 추가 클론용 3단계(자료 → 클론 설정 → 출시). 마스터 없으면 `/master-register` 유도
-- **설정** `/my/settings` — 알림·로그아웃 (프로필은 `/my/profile`)
-- **토큰** `/my/tokens` — Mock 충전(DB·브라우저 폴백), 이용 내역·필터, `token_mock_purchase_rls.sql`
+- **설정** `/settings` — **`/my/general` 리다이렉트** (계정 허브로 통합)
+- **토큰·구독 UI** — `/my/subscription` (`MyAccountSubscription` + TokenShop·TokenHistory)
+- **토큰** `/my/tokens` — 단일 페이지: 잔액·충전·이용 내역(Mock·필터), `token_mock_purchase_rls.sql`
 - **프로필 사진** — Storage 버킷 `avatars`, `/my/profile` 업로드
 - **마스터 이력 인증** — Storage `master-verifications` + `master_verifications` INSERT, 트리거로 `is_verified` 자동
 - **보너스 만료** — `expire_bonus_tokens_run()` + `cron_expire_bonus_tokens.sql` · pg_cron/수동/RPC 안내
@@ -69,6 +84,7 @@
 ## Phase 3 미완료 ❌
 
 - 토스페이먼츠 실제 결제
+- 플랫폼 구독 **실DB** 연동 (`platform_subscriptions` 등) · 월 토큰 자동 지급 · 레거시 `clone_subscriptions`/`pass_subscriptions` 정리 검토
 
 ---
 

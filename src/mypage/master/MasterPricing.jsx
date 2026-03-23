@@ -5,6 +5,7 @@ import Bt from "../../common/Bt";
 import { useAuth } from "../../contexts/AuthContext";
 import { getSupabaseBrowserClient } from "../../lib/supabase";
 import { fetchClonesForMaster, fetchMasterForUser } from "../../lib/supabaseQueries";
+import { formatApproxWonPerTurn } from "../../lib/tokenPricing";
 
 export default function MasterPricing() {
   const { user, supabaseConfigured } = useAuth();
@@ -81,7 +82,10 @@ export default function MasterPricing() {
     <div>
       <p style={{ fontSize: 10, color: "var(--pu)", fontFamily: "var(--mo)", letterSpacing: "0.08em", marginBottom: 8 }}>PRICING</p>
       <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>단가 설정</h2>
-      <p style={{ color: "var(--tx2)", fontSize: 13, marginBottom: 20 }}>클론별 토큰 소모량 (턴당)을 설정합니다.</p>
+      <p style={{ color: "var(--tx2)", fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+        클론별 토큰 소모량 (턴당)을 설정합니다. 멤버 채팅 UI에는 <strong style={{ color: "var(--tx)" }}>1토큰≈₩100</strong> 기준 원화 참고(
+        {formatApproxWonPerTurn(3)} 등)가 함께 표시됩니다.
+      </p>
       {msg ? <p style={{ color: "var(--cy)", fontSize: 13, marginBottom: 12 }}>{msg}</p> : null}
       {rows.length === 0 ? (
         <p style={{ color: "var(--tx2)" }}>클론이 없습니다. 먼저 클론을 만드세요.</p>
@@ -102,24 +106,29 @@ export default function MasterPricing() {
               }}
             >
               <span style={{ fontWeight: 700, flex: "1 1 120px", minWidth: 0 }}>{c.name}</span>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-                토큰/턴
-                <input
-                  type="number"
-                  min={1}
-                  value={draft[c.id] ?? "1"}
-                  onChange={(e) => setDraft((d) => ({ ...d, [c.id]: e.target.value }))}
-                  style={{
-                    width: 72,
-                    padding: "8px 10px",
-                    borderRadius: 8,
-                    border: "1px solid var(--br)",
-                    background: "var(--bg)",
-                    color: "var(--tx)",
-                    fontFamily: "var(--fn)",
-                  }}
-                />
-              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                  토큰/턴
+                  <input
+                    type="number"
+                    min={1}
+                    value={draft[c.id] ?? "1"}
+                    onChange={(e) => setDraft((d) => ({ ...d, [c.id]: e.target.value }))}
+                    style={{
+                      width: 72,
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      border: "1px solid var(--br)",
+                      background: "var(--bg)",
+                      color: "var(--tx)",
+                      fontFamily: "var(--fn)",
+                    }}
+                  />
+                </label>
+                <span style={{ fontSize: 11, color: "var(--tx3)", fontFamily: "var(--mo)" }}>
+                  {formatApproxWonPerTurn(Math.max(1, parseInt(draft[c.id], 10) || 1))} 참고
+                </span>
+              </div>
               <Bt v="pr" sz="sm" dis={saving === c.id} on={() => saveOne(c.id)}>
                 {saving === c.id ? "…" : "적용"}
               </Bt>

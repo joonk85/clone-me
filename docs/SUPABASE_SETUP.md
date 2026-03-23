@@ -126,7 +126,7 @@ WHERE NOT EXISTS (SELECT 1 FROM public.users pu WHERE pu.id = au.id);
 
 ## 5. 앱 연동 (내 정보 · 마스터 · 마켓)
 
-- **`/my/settings`** — `public.users` 조회·수정 (닉네임, 관심사, 알림)
+- **`/settings`** — `public.users` 조회·수정 (닉네임, 알림 등). 프로필 사진·SNS는 `/my/profile`
 - **`/my/master/profile`** — `public.masters` 등록·수정. **`/my/master/*`** — 인증·클론·수익·단가·정산 탭
 - **`/market`** — `clones` + `masters` 조인 조회 (`is_active = true` 만)
 

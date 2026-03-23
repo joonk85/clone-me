@@ -34,6 +34,27 @@ src/components/common/
 
 ## 주요 UX 패턴
 
+### 마이 멤버 `/my/*` (계정 허브)
+- **`/my`에서 앱 Rail 숨김** → 좌측 **fixed 전고** 계정 메뉴(268px, `AppShell` `main` 마진과 일치). `USER ACCOUNT` — General / Security / Subscription & Usage / Notifications / 구분선 / Go to My Master AI. 상단 **← 홈으로**(`/`).
+- **Security** (`/my/security`): 타이틀 **Security Control** — Password(영문 폼·Update Password) · Active Sessions(세션 API 시도·폴백 1행·`signOut({ scope: 'others' })`·행별 로그아웃 아이콘) · Security Log(로컬 `localStorage`·실패 빨간색) · Danger zone 계정 삭제 모달. 이메일 변경은 **General** 링크.
+- **마스터 `/my/master/clones`:** 마스터 모드 Rail **클론 목록** + 상단 검색·토큰/알림/계정 바 · **내 클론** 타이틀 · 통계 카드(TOTAL ACTIVE / 이번 달 메시지) · 데스크톱 **테이블**·모바일 **카드** · STATUS(Operating/Idle/Inactive) · 페이지네이션 · 하단 요약 3카드 · 빈 상태 **+ 첫 클론 만들기**. (`docs/MASTER_CLONES_LIST_SIDE_EFFECTS.md`)
+- **General** (`/my/general`): **General Settings** — 좌 아바타+**CHANGE AVATAR**, 우 **DISPLAY NAME**·**UNIQUE HANDLE**, **PROFILE BIO**(500자·`N / 500 characters`) · **ACCOUNT INFO**(이메일·가입일·가입 경로·계정 ID, 이메일 수정은 Security 링크) · 하단 **Reset to Defaults** / **Cancel** / **Save Changes**. (SNS 필드 UI 제거, DB 값은 유지)
+- **Subscription & Usage** (`/my/subscription`): 탭 **[Current] [Upgrade]** — Current: **ACCOUNT STATUS** + **TOKEN CONSUMPTION**(링·바·USED/ALLOCATED/EST.RESET)·**Usage History** 테이블·VIEW MORE·Export CSV(Mock). Upgrade: 4플랜 카드·Pro **RECOMMENDED**·Mock `setPlanMock`. (TokenShop은 이 페이지에서 제거)
+- **모바일**: **← 홈으로** 항상 + 상단 가로 탭(동일 메뉴 + Master AI).
+- **우측**: 선택 메뉴별 페이지(`MyAccount*`). 마스터 스튜디오는 **`/my/master/*`** (기존 상단 탭만 유지).
+- **`/settings`** → `/my/general` 리다이렉트.
+
+### 마스터 탐색 `/market`
+- **앱 셸:** 이 경로에서 기본 상단 헤더 숨김 → 마켓 **자체** 스티키 바(중앙 검색 `Search AI Masters…`, 우측 `TokenRingGauge`·토큰 문구·벨·계정).
+- **Priority Access** 배너: 플랜 카피(Free vs 유료) + 남은 토큰 + 슬롯 아이콘 4칸.
+- **그리드:** 모바일 1열 / 태블릿 2열 / 데스크톱 3열. 카드 상단 흑백 이미지, cyan 뱃지 `RATING / MSG NT`, 하단 다크 풋터, hover 시 lift + cyan glow.
+- **변수:** `STYLE_GUIDE` 마켓 토큰 + `@keyframes market-sk` 스켈레톤.
+
+### 플랫폼 요금제 `/pricing`
+- 비로그인 접근 가능 · 로그인 시 **현재 플랜** 강조 · Free CTA **시작하기** / 유료 **구독하기 (Mock)** · 연간 −20% 토글
+- 레일·앱 헤더: 토큰 잔액 옆 **플랜 뱃지** · Free면 **업그레이드** → `/pricing`
+- 채팅·클론 정보: **N토큰/턴 · 약 ₩…/턴** (1토큰=₩100 참고)
+
 ### 빈 상태 (Empty State)
 ```jsx
 <div style={{textAlign:'center', padding:'40px 24px'}}>

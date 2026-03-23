@@ -26,6 +26,7 @@ import {
 import { useAppRail } from "../contexts/AppRailContext";
 import { usePageTitle } from "../contexts/PageTitleContext";
 import { FREE_BASE, FREE_BONUS, MONTHLY_CAP } from "../lib/tokens";
+import { buildClonePriceLabel } from "../lib/tokenPricing";
 import "./chat-claude.css";
 
 function pickMarketingLink(userMsg, answer, links, freq) {
@@ -546,7 +547,7 @@ export default function Chat({
                 무료 체험 {rem}회 남았습니다
               </span>
               <Bt v="pr" sz="sm">
-                {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`}
+                {clone.priceLabel || buildClonePriceLabel(clone.token_price ?? 1)}
               </Bt>
             </div>
           )}
@@ -753,8 +754,8 @@ export default function Chat({
                           <LightBulbIcon style={{ width: 16, height: 16, display: "inline-block", verticalAlign: "middle", marginRight: 6 }} />
                           토큰을 충전하면 이 주제를 더 깊이 이어갈 수 있어요.
                         </div>
-                        <Bt v="pr" on={() => navigate("/my/tokens")} style={{ width: "100%", justifyContent: "center", background: "var(--chat-accent, var(--cy))" }}>
-                          {clone.priceLabel || `토큰 ${clone.token_price ?? 1}/메시지`} · 충전하기
+                        <Bt v="pr" on={() => navigate("/my/subscription")} style={{ width: "100%", justifyContent: "center", background: "var(--chat-accent, var(--cy))" }}>
+                          {clone.priceLabel || buildClonePriceLabel(clone.token_price ?? 1)} · 충전하기
                         </Bt>
                       </div>
                     </div>
@@ -865,7 +866,7 @@ export default function Chat({
               }}
             >
               <div style={{ fontFamily: "var(--mo)", fontSize: 10, color: "var(--tx3)", marginBottom: 4 }}>이용 요금</div>
-              {clone.priceLabel || `토큰 ${clone.token_price ?? 1} / 메시지`}
+              {clone.priceLabel || buildClonePriceLabel(clone.token_price ?? 1)}
             </div>
             {isSub && (
               <div style={{ marginTop: 10, fontSize: 11, color: "var(--go)", fontFamily: "var(--mo)", display: "flex", alignItems: "center", gap: 4 }}>

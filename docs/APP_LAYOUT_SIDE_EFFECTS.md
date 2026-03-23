@@ -47,7 +47,7 @@
 - **AppShell.jsx (스펙 반영):**
   - **Left Rail:** 전체 높이 고정. 열림 240px / 접힘 56px. Collapse 토글 버튼(ChevronLeft/Right) 항상 표시. `localStorage` 키 `clone_me_rail_collapsed`로 새로고침 유지.
   - **비로그인:** 상단 로고(collapse 시 favicon만 "c" 원형) + 토글. 메뉴: 홈(HomeIcon), 마스터 찾기(MagnifyingGlassIcon). 하단: 로그인(ArrowRightOnRectangleIcon).
-  - **로그인:** 상단 동일. 메뉴: 홈, 마스터 찾기, 대화 히스토리(스크롤, 항목=아바타+마스터명+미리보기; collapse 시 아바타만). 하단: 내 이름+아바타, 클릭 시 드롭업(마이페이지 /my, 설정 /my/settings). Heroicons 사용.
+  - **로그인:** 상단 동일. 메뉴: 홈, 마스터 찾기, 대화 히스토리(스크롤, 항목=아바타+마스터명+미리보기; collapse 시 아바타만). 하단: 내 이름+아바타, 클릭 시 드롭업(마이페이지 /my, 설정 /settings). Heroicons 사용.
   - **헤더:** 비로그인=우측 로그인 버튼. 로그인=아바타+토큰 pill(/my/tokens)+마스터 시 마스터 전환(/dashboard), 비마스터 시 마스터 만들기(/master-register).
   - **모바일:** rail 기본 숨김, 햄버거로 슬라이드 오픈, 배경 클릭·Escape로 닫기. 하단 탭바 없음.
 - **PageTitleContext / AppRailContext:** 유지.

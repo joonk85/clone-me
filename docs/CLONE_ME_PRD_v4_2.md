@@ -506,11 +506,13 @@ Step 2-B (마스터): → /master-register
 - 단가 설정 (슬라이더 + 입력 필드)
 - 정산 계좌
 
-### 설정 (/my/settings)
+### 설정 (/settings)
 ```
-알림: 마케팅(OFF기본)/이메일(ON)/대화(ON)/피드백(ON,마스터만)
-이용약관 및 정책: 이용약관 / 개인정보처리방침
-계정 관리: 내정보 / 비밀번호 변경 / 회원탈퇴
+계정: 이메일 변경 / 비밀번호 변경 / 닉네임
+구독: 현재 플랜 / 업그레이드(/pricing) / 취소(Mock)
+알림: 마케팅(OFF 기본) / 이메일(ON 기본) / 신규 마스터
+보안: 로그인 기록(Phase 3) / 계정 삭제
+이용약관·개인정보: 푸터·별도 페이지 연결
 로그아웃
 ```
 
@@ -803,7 +805,7 @@ Step 3: 완료 → 첫 클론 만들기
 
 보호
 /onboarding
-/my /my/master /my/tokens /my/settings
+/my /my/master /my/tokens /my/security /settings
 /chat/:cloneId
 /master-register
 /dashboard /dashboard/:cloneId /dashboard/create

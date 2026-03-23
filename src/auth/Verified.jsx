@@ -60,7 +60,7 @@ export default function Verified() {
     } catch {
       /* ignore */
     }
-    navigate("/my/profile", { replace: true });
+    navigate("/my/general", { replace: true });
   };
 
   useEffect(() => {

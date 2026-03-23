@@ -149,7 +149,7 @@ export default function Nav() {
           ) : (
             <button
               type="button"
-              onClick={() => navigate("/my/profile")}
+              onClick={() => navigate("/my/general")}
               style={{
                 minHeight: "var(--touch-min)",
                 padding: "0 12px",
